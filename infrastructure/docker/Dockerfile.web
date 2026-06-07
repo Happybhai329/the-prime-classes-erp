@@ -1,0 +1,32 @@
+# ============================================================
+# Prime ERP Web — Production Dockerfile
+# Multi-stage build: Node.js build → Nginx serve
+# ============================================================
+
+# Stage 1: Build
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/shared-types/package.json ./packages/shared-types/
+
+RUN pnpm install --frozen-lockfile
+
+COPY packages/shared-types/ ./packages/shared-types/
+COPY apps/web/ ./apps/web/
+
+RUN pnpm --filter @prime/shared-types build
+RUN pnpm --filter @prime/web build
+
+# Stage 2: Serve
+FROM nginx:alpine AS production
+
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+COPY infrastructure/nginx/nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

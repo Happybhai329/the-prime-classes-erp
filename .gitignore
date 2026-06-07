@@ -1,0 +1,87 @@
+# ============================================================
+# Prime ERP — Git Ignore
+# ============================================================
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.pnp.cjs
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Environment — NEVER commit real secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Allow .env.example and .env.development (no secrets)
+!.env.example
+!.env.development
+
+# IDE
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Turbo
+.turbo/
+
+# Prisma
+apps/api/prisma/migrations/**/migration_lock.toml
+
+# Docker volumes (local data)
+docker-data/
+postgres_data/
+redis_data/
+minio_data/
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output/
+
+# Testing
+test-results/
+playwright-report/
+
+# Temp
+*.tmp
+*.bak
+*.swp
+*.orig
+
+# Generated
+*.tsbuildinfo
+
+# Flutter (for future mobile app)
+apps/mobile/.dart_tool/
+apps/mobile/.packages
+apps/mobile/build/
+apps/mobile/.flutter-plugins
+apps/mobile/.flutter-plugins-dependencies
+
+# MinIO local data
+.minio.sys/

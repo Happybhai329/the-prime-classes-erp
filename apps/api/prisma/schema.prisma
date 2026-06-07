@@ -1,0 +1,725 @@
+// ============================================================
+// Prime ERP — Prisma Schema
+// Production-grade, multi-tenant, SaaS-ready
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================
+// TENANT
+// ============================================================
+
+model Tenant {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @db.VarChar(255)
+  slug      String   @unique @db.VarChar(100)
+  plan      TenantPlan @default(FREE)
+  settings  Json     @default("{}")
+  logoUrl   String?  @map("logo_url") @db.VarChar(500)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users              User[]
+  students           Student[]
+  parents            Parent[]
+  faculty            Faculty[]
+  batches            Batch[]
+  subjects           Subject[]
+  attendanceSessions AttendanceSession[]
+  tests              Test[]
+  feeStructures      FeeStructure[]
+  feeInvoices        FeeInvoice[]
+  studyMaterials     StudyMaterial[]
+  notifications      Notification[]
+  auditLogs          AuditLog[]
+
+  @@map("tenants")
+}
+
+enum TenantPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+// ============================================================
+// USER & AUTHENTICATION
+// ============================================================
+
+model User {
+  id               String    @id @default(uuid()) @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  email            String    @db.VarChar(255)
+  phone            String?   @db.VarChar(20)
+  passwordHash     String    @map("password_hash") @db.VarChar(255)
+  role             UserRole
+  isActive         Boolean   @default(true) @map("is_active")
+  lastLogin        DateTime? @map("last_login")
+  refreshTokenHash String?   @map("refresh_token_hash") @db.VarChar(500)
+  fcmToken         String?   @map("fcm_token") @db.VarChar(500)
+  passwordResetToken String? @map("password_reset_token") @db.VarChar(500)
+  passwordResetExpiry DateTime? @map("password_reset_expiry")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  // Relations
+  tenant           Tenant    @relation(fields: [tenantId], references: [id])
+  student          Student?
+  parent           Parent?
+  faculty          Faculty?
+
+  // Reverse relations
+  attendancesTaken AttendanceSession[] @relation("AttendanceTakenBy")
+  testsCreated     Test[]              @relation("TestCreatedBy")
+  marksEntered     TestMarks[]         @relation("MarksEnteredBy")
+  materialsUploaded StudyMaterial[]    @relation("MaterialUploadedBy")
+  paymentsCollected FeePayment[]      @relation("PaymentCollectedBy")
+  notificationsCreated Notification[] @relation("NotificationCreatedBy")
+  notificationLogs NotificationLog[]
+  auditLogs        AuditLog[]
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@index([role])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  FACULTY
+  STUDENT
+  PARENT
+  ACCOUNTANT
+}
+
+// ============================================================
+// STUDENT
+// ============================================================
+
+model Student {
+  id              String        @id @default(uuid()) @db.Uuid
+  userId          String        @unique @map("user_id") @db.Uuid
+  tenantId        String        @map("tenant_id") @db.Uuid
+  rollNumber      String        @map("roll_number") @db.VarChar(50)
+  firstName       String        @map("first_name") @db.VarChar(100)
+  lastName        String        @map("last_name") @db.VarChar(100)
+  dob             DateTime      @db.Date
+  gender          Gender
+  aadharNumber    String?       @map("aadhar_number") @db.VarChar(255) // encrypted
+  schoolName      String        @map("school_name") @db.VarChar(255)
+  classStudying   String        @map("class_studying") @db.VarChar(50)
+  address         Json          @default("{}")
+  admissionDate   DateTime      @map("admission_date") @db.Date
+  status          StudentStatus @default(ACTIVE)
+  targetExam      TargetExam[]  @map("target_exam")
+  photoUrl        String?       @map("photo_url") @db.VarChar(500)
+  documents       Json          @default("{}") // { aadhar: url, birth_cert: url, ... }
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  deletedAt       DateTime?     @map("deleted_at")
+
+  // Relations
+  user            User          @relation(fields: [userId], references: [id])
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  parentMappings  StudentParentMap[]
+  batchEnrollments BatchStudent[]
+  attendanceRecords AttendanceRecord[]
+  testMarks       TestMarks[]
+  testRankings    TestRanking[]
+  feeInvoices     FeeInvoice[]
+
+  @@unique([tenantId, rollNumber])
+  @@index([tenantId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("students")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum StudentStatus {
+  ACTIVE
+  INACTIVE
+  PASSED_OUT
+  DROPPED
+}
+
+enum TargetExam {
+  SAINIK
+  RMS
+  RIMC
+  SCHOLARSHIP
+  FOUNDATION
+}
+
+// ============================================================
+// PARENT
+// ============================================================
+
+model Parent {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @unique @map("user_id") @db.Uuid
+  tenantId         String   @map("tenant_id") @db.Uuid
+  fatherName       String   @map("father_name") @db.VarChar(100)
+  motherName       String?  @map("mother_name") @db.VarChar(100)
+  fatherPhone      String   @map("father_phone") @db.VarChar(20)
+  motherPhone      String?  @map("mother_phone") @db.VarChar(20)
+  fatherOccupation String?  @map("father_occupation") @db.VarChar(100)
+  motherOccupation String?  @map("mother_occupation") @db.VarChar(100)
+  emergencyContact String?  @map("emergency_contact") @db.VarChar(20)
+  address          Json     @default("{}")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user             User     @relation(fields: [userId], references: [id])
+  tenant           Tenant   @relation(fields: [tenantId], references: [id])
+  studentMappings  StudentParentMap[]
+
+  @@index([tenantId])
+  @@map("parents")
+}
+
+model StudentParentMap {
+  id           String             @id @default(uuid()) @db.Uuid
+  studentId    String             @map("student_id") @db.Uuid
+  parentId     String             @map("parent_id") @db.Uuid
+  relationship ParentRelationship
+  isPrimary    Boolean            @default(false) @map("is_primary")
+  createdAt    DateTime           @default(now()) @map("created_at")
+
+  // Relations
+  student      Student            @relation(fields: [studentId], references: [id])
+  parent       Parent             @relation(fields: [parentId], references: [id])
+
+  @@unique([studentId, parentId])
+  @@index([parentId])
+  @@map("student_parent_map")
+}
+
+enum ParentRelationship {
+  FATHER
+  MOTHER
+  GUARDIAN
+}
+
+// ============================================================
+// FACULTY
+// ============================================================
+
+model Faculty {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @unique @map("user_id") @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  employeeId     String   @map("employee_id") @db.VarChar(50)
+  firstName      String   @map("first_name") @db.VarChar(100)
+  lastName       String   @map("last_name") @db.VarChar(100)
+  specialization String[] @default([])
+  qualification  String?  @db.VarChar(255)
+  joiningDate    DateTime @map("joining_date") @db.Date
+  salary         Decimal? @db.Decimal(10, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user           User     @relation(fields: [userId], references: [id])
+  tenant         Tenant   @relation(fields: [tenantId], references: [id])
+  classBatches   Batch[]  @relation("ClassTeacher")
+  batchSubjects  BatchSubject[]
+
+  @@unique([tenantId, employeeId])
+  @@index([tenantId])
+  @@map("faculty")
+}
+
+// ============================================================
+// BATCH & SUBJECT
+// ============================================================
+
+model Batch {
+  id             String     @id @default(uuid()) @db.Uuid
+  tenantId       String     @map("tenant_id") @db.Uuid
+  name           String     @db.VarChar(255)
+  code           String     @db.VarChar(50)
+  targetExam     TargetExam @map("target_exam")
+  academicYear   String     @map("academic_year") @db.VarChar(20)
+  startDate      DateTime   @map("start_date") @db.Date
+  endDate        DateTime   @map("end_date") @db.Date
+  maxStrength    Int        @default(50) @map("max_strength")
+  timing         Json       @default("{}") // { days: [], startTime, endTime }
+  classTeacherId String?    @map("class_teacher_id") @db.Uuid
+  isActive       Boolean    @default(true) @map("is_active")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  tenant         Tenant     @relation(fields: [tenantId], references: [id])
+  classTeacher   Faculty?   @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+  students       BatchStudent[]
+  subjects       BatchSubject[]
+  attendanceSessions AttendanceSession[]
+  tests          Test[]
+  feeStructures  FeeStructure[]
+  studyMaterials StudyMaterial[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@index([isActive])
+  @@map("batches")
+}
+
+model Subject {
+  id         String       @id @default(uuid()) @db.Uuid
+  tenantId   String       @map("tenant_id") @db.Uuid
+  name       String       @db.VarChar(100)
+  code       String       @db.VarChar(20)
+  targetExam TargetExam[] @map("target_exam")
+  createdAt  DateTime     @default(now()) @map("created_at")
+  updatedAt  DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  tenant       Tenant         @relation(fields: [tenantId], references: [id])
+  batchSubjects BatchSubject[]
+  attendanceSessions AttendanceSession[]
+  studyMaterials StudyMaterial[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+  @@map("subjects")
+}
+
+model BatchStudent {
+  id             String             @id @default(uuid()) @db.Uuid
+  batchId        String             @map("batch_id") @db.Uuid
+  studentId      String             @map("student_id") @db.Uuid
+  joinedAt       DateTime           @default(now()) @map("joined_at") @db.Date
+  transferredFrom String?           @map("transferred_from") @db.Uuid
+  status         BatchStudentStatus @default(ACTIVE)
+  createdAt      DateTime           @default(now()) @map("created_at")
+
+  // Relations
+  batch          Batch              @relation(fields: [batchId], references: [id])
+  student        Student            @relation(fields: [studentId], references: [id])
+
+  @@unique([batchId, studentId])
+  @@index([studentId])
+  @@index([status])
+  @@map("batch_students")
+}
+
+enum BatchStudentStatus {
+  ACTIVE
+  TRANSFERRED
+  COMPLETED
+}
+
+model BatchSubject {
+  id        String   @id @default(uuid()) @db.Uuid
+  batchId   String   @map("batch_id") @db.Uuid
+  subjectId String   @map("subject_id") @db.Uuid
+  facultyId String?  @map("faculty_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  batch     Batch    @relation(fields: [batchId], references: [id])
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+  faculty   Faculty? @relation(fields: [facultyId], references: [id])
+
+  @@unique([batchId, subjectId])
+  @@map("batch_subjects")
+}
+
+// ============================================================
+// ATTENDANCE
+// ============================================================
+
+model AttendanceSession {
+  id          String               @id @default(uuid()) @db.Uuid
+  tenantId    String               @map("tenant_id") @db.Uuid
+  batchId     String               @map("batch_id") @db.Uuid
+  subjectId   String?              @map("subject_id") @db.Uuid
+  sessionDate DateTime             @map("session_date") @db.Date
+  sessionType AttendanceSessionType @map("session_type")
+  takenBy     String               @map("taken_by") @db.Uuid
+  isFinalized Boolean              @default(false) @map("is_finalized")
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+
+  // Relations
+  tenant      Tenant               @relation(fields: [tenantId], references: [id])
+  batch       Batch                @relation(fields: [batchId], references: [id])
+  subject     Subject?             @relation(fields: [subjectId], references: [id])
+  faculty     User                 @relation("AttendanceTakenBy", fields: [takenBy], references: [id])
+  records     AttendanceRecord[]
+
+  @@unique([batchId, sessionDate, sessionType, subjectId])
+  @@index([tenantId])
+  @@index([sessionDate])
+  @@map("attendance_sessions")
+}
+
+enum AttendanceSessionType {
+  MORNING
+  AFTERNOON
+  SUBJECT
+}
+
+model AttendanceRecord {
+  id        String           @id @default(uuid()) @db.Uuid
+  sessionId String           @map("session_id") @db.Uuid
+  studentId String           @map("student_id") @db.Uuid
+  status    AttendanceStatus
+  remarks   String?          @db.Text
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  session   AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student   Student           @relation(fields: [studentId], references: [id])
+
+  @@unique([sessionId, studentId])
+  @@index([studentId])
+  @@map("attendance_records")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  LEAVE
+}
+
+// ============================================================
+// TEST & RANKING
+// ============================================================
+
+model Test {
+  id              String     @id @default(uuid()) @db.Uuid
+  tenantId        String     @map("tenant_id") @db.Uuid
+  batchId         String     @map("batch_id") @db.Uuid
+  name            String     @db.VarChar(255)
+  testType        TestType   @map("test_type")
+  testDate        DateTime   @map("test_date") @db.Date
+  totalMarks      Decimal    @map("total_marks") @db.Decimal(6, 2)
+  durationMinutes Int?       @map("duration_minutes")
+  subjectIds      String[]   @map("subject_ids") @db.Uuid
+  hasOmr          Boolean    @default(false) @map("has_omr")
+  omrTemplateUrl  String?    @map("omr_template_url") @db.VarChar(500)
+  status          TestStatus @default(DRAFT)
+  createdBy       String     @map("created_by") @db.Uuid
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  tenant          Tenant     @relation(fields: [tenantId], references: [id])
+  batch           Batch      @relation(fields: [batchId], references: [id])
+  creator         User       @relation("TestCreatedBy", fields: [createdBy], references: [id])
+  marks           TestMarks[]
+  rankings        TestRanking[]
+
+  @@index([tenantId])
+  @@index([batchId])
+  @@index([testDate])
+  @@index([status])
+  @@map("tests")
+}
+
+enum TestType {
+  WEEKLY
+  MONTHLY
+  MOCK
+  SCHOLARSHIP
+  INTERNAL
+}
+
+enum TestStatus {
+  DRAFT
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  PUBLISHED
+}
+
+model TestMarks {
+  id            String   @id @default(uuid()) @db.Uuid
+  testId        String   @map("test_id") @db.Uuid
+  studentId     String   @map("student_id") @db.Uuid
+  marksObtained Decimal  @map("marks_obtained") @db.Decimal(6, 2)
+  subjectMarks  Json     @default("{}") @map("subject_marks") // { "math": 45, "english": 38 }
+  isAbsent      Boolean  @default(false) @map("is_absent")
+  remarks       String?  @db.Text
+  enteredBy     String   @map("entered_by") @db.Uuid
+  enteredAt     DateTime @default(now()) @map("entered_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  test          Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  student       Student  @relation(fields: [studentId], references: [id])
+  enteredByUser User     @relation("MarksEnteredBy", fields: [enteredBy], references: [id])
+
+  @@unique([testId, studentId])
+  @@index([studentId])
+  @@map("test_marks")
+}
+
+model TestRanking {
+  id          String   @id @default(uuid()) @db.Uuid
+  testId      String   @map("test_id") @db.Uuid
+  studentId   String   @map("student_id") @db.Uuid
+  batchRank   Int      @map("batch_rank")
+  overallRank Int?     @map("overall_rank")
+  percentile  Decimal? @db.Decimal(5, 2)
+  grade       String?  @db.VarChar(10)
+  computedAt  DateTime @default(now()) @map("computed_at")
+
+  // Relations
+  test        Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  student     Student  @relation(fields: [studentId], references: [id])
+
+  @@unique([testId, studentId])
+  @@index([studentId])
+  @@index([batchRank])
+  @@map("test_rankings")
+}
+
+// ============================================================
+// FEES
+// ============================================================
+
+model FeeStructure {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  batchId   String?  @map("batch_id") @db.Uuid
+  name      String   @db.VarChar(255)
+  feeType   FeeType  @map("fee_type")
+  amount    Decimal  @db.Decimal(10, 2)
+  dueDay    Int?     @map("due_day") // Day of month (1-28)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  batch     Batch?   @relation(fields: [batchId], references: [id])
+  invoices  FeeInvoice[]
+
+  @@index([tenantId])
+  @@map("fee_structures")
+}
+
+enum FeeType {
+  ADMISSION
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+  EXAM
+  MATERIAL
+}
+
+model FeeInvoice {
+  id              String        @id @default(uuid()) @db.Uuid
+  tenantId        String        @map("tenant_id") @db.Uuid
+  studentId       String        @map("student_id") @db.Uuid
+  feeStructureId  String        @map("fee_structure_id") @db.Uuid
+  invoiceNumber   String        @unique @map("invoice_number") @db.VarChar(50)
+  amount          Decimal       @db.Decimal(10, 2)
+  dueDate         DateTime      @map("due_date") @db.Date
+  status          InvoiceStatus @default(PENDING)
+  month           Int?
+  year            Int?
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  student         Student       @relation(fields: [studentId], references: [id])
+  feeStructure    FeeStructure  @relation(fields: [feeStructureId], references: [id])
+  payments        FeePayment[]
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("fee_invoices")
+}
+
+enum InvoiceStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+model FeePayment {
+  id               String      @id @default(uuid()) @db.Uuid
+  invoiceId        String      @map("invoice_id") @db.Uuid
+  amountPaid       Decimal     @map("amount_paid") @db.Decimal(10, 2)
+  paymentDate      DateTime    @default(now()) @map("payment_date") @db.Date
+  paymentMode      PaymentMode @map("payment_mode")
+  razorpayOrderId  String?     @map("razorpay_order_id") @db.VarChar(100)
+  razorpayPaymentId String?    @map("razorpay_payment_id") @db.VarChar(100)
+  receiptNumber    String      @unique @map("receipt_number") @db.VarChar(50)
+  collectedBy      String      @map("collected_by") @db.Uuid
+  createdAt        DateTime    @default(now()) @map("created_at")
+
+  // Relations
+  invoice          FeeInvoice  @relation(fields: [invoiceId], references: [id])
+  collector        User        @relation("PaymentCollectedBy", fields: [collectedBy], references: [id])
+
+  @@index([invoiceId])
+  @@map("fee_payments")
+}
+
+enum PaymentMode {
+  CASH
+  RAZORPAY
+  BANK_TRANSFER
+  CHEQUE
+  UPI
+}
+
+// ============================================================
+// STUDY MATERIALS
+// ============================================================
+
+model StudyMaterial {
+  id           String       @id @default(uuid()) @db.Uuid
+  tenantId     String       @map("tenant_id") @db.Uuid
+  batchId      String?      @map("batch_id") @db.Uuid
+  subjectId    String?      @map("subject_id") @db.Uuid
+  title        String       @db.VarChar(255)
+  description  String?      @db.Text
+  materialType MaterialType @map("material_type")
+  fileUrl      String       @map("file_url") @db.VarChar(500)
+  fileSize     Int          @default(0) @map("file_size") // bytes
+  uploadedBy   String       @map("uploaded_by") @db.Uuid
+  dueDate      DateTime?    @map("due_date") @db.Date
+  isPublished  Boolean      @default(true) @map("is_published")
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  tenant       Tenant       @relation(fields: [tenantId], references: [id])
+  batch        Batch?       @relation(fields: [batchId], references: [id])
+  subject      Subject?     @relation(fields: [subjectId], references: [id])
+  uploader     User         @relation("MaterialUploadedBy", fields: [uploadedBy], references: [id])
+
+  @@index([tenantId])
+  @@index([batchId])
+  @@index([materialType])
+  @@map("study_materials")
+}
+
+enum MaterialType {
+  NOTES
+  HOMEWORK
+  ASSIGNMENT
+  QUESTION_PAPER
+  ANSWER_KEY
+  SYLLABUS
+}
+
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
+model Notification {
+  id          String             @id @default(uuid()) @db.Uuid
+  tenantId    String             @map("tenant_id") @db.Uuid
+  title       String             @db.VarChar(255)
+  body        String             @db.Text
+  type        NotificationType
+  targetRoles UserRole[]         @map("target_roles")
+  targetIds   String[]           @map("target_ids") @db.Uuid
+  data        Json               @default("{}")
+  createdBy   String             @map("created_by") @db.Uuid
+  sentAt      DateTime           @default(now()) @map("sent_at")
+
+  // Relations
+  tenant      Tenant             @relation(fields: [tenantId], references: [id])
+  creator     User               @relation("NotificationCreatedBy", fields: [createdBy], references: [id])
+  logs        NotificationLog[]
+
+  @@index([tenantId])
+  @@index([sentAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  ATTENDANCE
+  TEST_RESULT
+  FEE_DUE
+  ANNOUNCEMENT
+  EXAM_ALERT
+}
+
+model NotificationLog {
+  id              String                    @id @default(uuid()) @db.Uuid
+  notificationId  String                    @map("notification_id") @db.Uuid
+  userId          String                    @map("user_id") @db.Uuid
+  fcmToken        String?                   @map("fcm_token") @db.VarChar(500)
+  status          NotificationDeliveryStatus @default(SENT)
+  deliveredAt     DateTime?                 @map("delivered_at")
+  readAt          DateTime?                 @map("read_at")
+  createdAt       DateTime                  @default(now()) @map("created_at")
+
+  // Relations
+  notification    Notification              @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user            User                      @relation(fields: [userId], references: [id])
+
+  @@unique([notificationId, userId])
+  @@index([userId])
+  @@index([status])
+  @@map("notification_logs")
+}
+
+enum NotificationDeliveryStatus {
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+// ============================================================
+// AUDIT LOG
+// ============================================================
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  action     String   @db.VarChar(100)  // e.g. "UPDATE_MARKS", "DELETE_STUDENT"
+  resource   String   @db.VarChar(100)  // e.g. "test_marks", "students"
+  resourceId String?  @map("resource_id") @db.Uuid
+  oldValue   Json?    @map("old_value")
+  newValue   Json?    @map("new_value")
+  ipAddress  String?  @map("ip_address") @db.VarChar(50)
+  userAgent  String?  @map("user_agent") @db.VarChar(500)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
