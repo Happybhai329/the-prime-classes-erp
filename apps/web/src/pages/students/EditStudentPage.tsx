@@ -12,7 +12,7 @@ export const EditStudentPage: React.FC = () => {
   const { data: student, isLoading } = useStudent(id!);
   const updateMutation = useUpdateStudent();
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset } = useForm();
 
   useEffect(() => {
     if (student) {

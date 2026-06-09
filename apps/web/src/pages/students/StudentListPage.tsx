@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Download, GraduationCap } from 'lucide-react';
+import { Plus, Download } from 'lucide-react';
 import { useStudents, useDeleteStudent } from '@/hooks/useStudents';
 import { studentService } from '@/services/student.service';
 import { PageHeader } from '@/components/ui/PageHeader';

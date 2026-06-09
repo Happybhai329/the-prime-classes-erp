@@ -5,7 +5,7 @@ import { useStudent, useStudentAttendance, useStudentTests, useStudentFees } fro
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { TabGroup } from '@/components/ui/TabGroup';
-import { PageHeader } from '@/components/ui/PageHeader';
+
 
 const tabs = [
   { id: 'personal', label: 'Personal', icon: <User className="h-4 w-4" /> },

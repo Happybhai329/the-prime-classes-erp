@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, LogOut, ChevronDown, Settings } from 'lucide-react';
+import { LogOut, ChevronDown, Settings } from 'lucide-react';
 import { useAuthStore } from '@/store/auth.store';
 import { useLogout } from '@/hooks/useAuth';
 

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, Calendar, Clock, Edit } from 'lucide-react';
-import { useBatch, useRemoveStudentFromBatch } from '@/hooks/useBatches'; // Needs remove hook added
+import { useBatch } from '@/hooks/useBatches'; 
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { TabGroup } from '@/components/ui/TabGroup';
 
 export const BatchDetailPage: React.FC = () => {

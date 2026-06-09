@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useBatch, useUpdateBatch } from '@/hooks/useBatches';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
@@ -12,7 +12,7 @@ export const EditBatchPage: React.FC = () => {
   const { data: batch, isLoading } = useBatch(id!);
   const updateMutation = useUpdateBatch();
 
-  const { register, handleSubmit, control, reset, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset } = useForm();
 
   useEffect(() => {
     if (batch) {
@@ -49,8 +49,6 @@ export const EditBatchPage: React.FC = () => {
     };
     updateMutation.mutate({ id: id!, data: payload }, { onSuccess: () => navigate(`/batches/${id}`) });
   };
-
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
     <div id="edit-batch-page">
