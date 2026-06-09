@@ -1,53 +1,111 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuthStore } from './store/auth.store';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
+import { ProtectedRoute } from './components/guards/ProtectedRoute';
+import { AppShell } from './components/layout/AppShell';
 
-// Placeholder pages — will be replaced with full implementations
-const LoginPage = () => (
-  <div className="min-h-screen gradient-primary flex items-center justify-center p-4">
-    <div className="glass-card p-8 w-full max-w-md animate-fade-in">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-display font-bold text-white mb-2">
-          The Prime Classes
-        </h1>
-        <p className="text-primary-200 text-sm">
-          Military School Entrance Preparation
-        </p>
-      </div>
-      <p className="text-white/70 text-center text-sm">
-        Login page will be implemented in Phase 1
-      </p>
+// Auth Pages
+import { LoginPage } from './pages/auth/LoginPage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+
+// Dashboard
+import { DashboardPage } from './pages/dashboard/DashboardPage';
+
+// Students
+import { StudentListPage } from './pages/students/StudentListPage';
+import { StudentDetailPage } from './pages/students/StudentDetailPage';
+import { CreateStudentPage } from './pages/students/CreateStudentPage';
+import { EditStudentPage } from './pages/students/EditStudentPage';
+
+// Parents
+import { ParentListPage } from './pages/parents/ParentListPage';
+import { ParentDetailPage } from './pages/parents/ParentDetailPage';
+
+// Batches
+import { BatchListPage } from './pages/batches/BatchListPage';
+import { BatchDetailPage } from './pages/batches/BatchDetailPage';
+import { CreateBatchPage } from './pages/batches/CreateBatchPage';
+import { EditBatchPage } from './pages/batches/EditBatchPage';
+
+// Placeholder for unbuilt modules
+const PlaceholderPage = ({ title }: { title: string }) => (
+  <div className="flex items-center justify-center h-96">
+    <div className="text-center">
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
+      <p className="text-gray-500">This module is under development (Phase 2).</p>
     </div>
   </div>
 );
 
-const DashboardPage = () => (
-  <div className="p-6 animate-slide-up">
-    <h1 className="text-2xl font-display font-bold text-gray-900 mb-6">
-      Dashboard
-    </h1>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {[
-        { label: 'Total Students', value: '500+', color: 'from-blue-500 to-blue-700' },
-        { label: 'Active Batches', value: '8', color: 'from-emerald-500 to-emerald-700' },
-        { label: 'Today\'s Attendance', value: '94%', color: 'from-purple-500 to-purple-700' },
-        { label: 'Pending Fees', value: '₹2.4L', color: 'from-orange-500 to-orange-700' },
-      ].map((stat) => (
-        <div key={stat.label} className={`card-hover p-6 bg-gradient-to-br ${stat.color} text-white`}>
-          <p className="text-sm font-medium text-white/80">{stat.label}</p>
-          <p className="text-3xl font-display font-bold mt-2">{stat.value}</p>
-        </div>
-      ))}
-    </div>
-  </div>
-);
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="*" element={<Navigate to="/login" replace />} />
-    </Routes>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Toaster position="top-right" />
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+          {/* Protected App Routes */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <AppShell />
+              </ProtectedRoute>
+            }
+          >
+            {/* Redirect root to dashboard */}
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            
+            {/* Dashboard */}
+            <Route path="dashboard" element={<DashboardPage />} />
+
+            {/* Students */}
+            <Route path="students" element={<StudentListPage />} />
+            <Route path="students/create" element={<CreateStudentPage />} />
+            <Route path="students/:id" element={<StudentDetailPage />} />
+            <Route path="students/:id/edit" element={<EditStudentPage />} />
+
+            {/* Parents */}
+            <Route path="parents" element={<ParentListPage />} />
+            <Route path="parents/:id" element={<ParentDetailPage />} />
+
+            {/* Batches */}
+            <Route path="batches" element={<BatchListPage />} />
+            <Route path="batches/create" element={<CreateBatchPage />} />
+            <Route path="batches/:id" element={<BatchDetailPage />} />
+            <Route path="batches/:id/edit" element={<EditBatchPage />} />
+
+            {/* Stubs for Phase 2 */}
+            <Route path="faculty" element={<PlaceholderPage title="Faculty Management" />} />
+            <Route path="attendance" element={<PlaceholderPage title="Attendance Management" />} />
+            <Route path="tests" element={<PlaceholderPage title="Test & Assessment Management" />} />
+            <Route path="fees" element={<PlaceholderPage title="Fee Collection & Invoicing" />} />
+            <Route path="reports" element={<PlaceholderPage title="Analytics & Reports" />} />
+            <Route path="settings" element={<PlaceholderPage title="System Settings" />} />
+            
+            {/* Catch-all 404 inside AppShell */}
+            <Route path="*" element={
+              <div className="text-center py-20">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+                <p className="text-gray-500">Page not found</p>
+              </div>
+            } />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
