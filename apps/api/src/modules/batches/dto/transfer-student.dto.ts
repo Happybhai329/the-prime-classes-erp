@@ -4,9 +4,9 @@ import { ApiProperty } from '@nestjs/swagger';
 export class TransferStudentDto {
   @ApiProperty({ description: 'Student ID to transfer' })
   @IsUUID()
-  studentId: string;
+  studentId!: string;
 
   @ApiProperty({ description: 'Target batch ID' })
   @IsUUID()
-  targetBatchId: string;
+  targetBatchId!: string;
 }

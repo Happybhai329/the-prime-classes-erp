@@ -19,24 +19,24 @@ class AddressDto {
   @ApiProperty({ example: '123 Main Street' })
   @IsString()
   @IsNotEmpty()
-  street: string;
+  street!: string;
 
   @ApiProperty({ example: 'Lucknow' })
   @IsString()
   @IsNotEmpty()
-  city: string;
+  city!: string;
 
   @ApiProperty({ example: 'Uttar Pradesh' })
   @IsString()
   @IsNotEmpty()
-  state: string;
+  state!: string;
 
   @ApiProperty({ example: '226001' })
   @IsString()
   @IsNotEmpty()
   @MinLength(6)
   @MaxLength(6)
-  pincode: string;
+  pincode!: string;
 }
 
 export class CreateStudentDto {
@@ -44,44 +44,44 @@ export class CreateStudentDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  firstName: string;
+  firstName!: string;
 
   @ApiProperty({ example: 'Singh' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(100)
-  lastName: string;
+  lastName!: string;
 
   @ApiProperty({ example: '2012-05-15' })
   @IsDateString()
-  dob: string;
+  dob!: string;
 
   @ApiProperty({ enum: Gender, example: Gender.MALE })
   @IsEnum(Gender)
-  gender: Gender;
+  gender!: Gender;
 
   @ApiProperty({ example: 'Delhi Public School' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
-  schoolName: string;
+  schoolName!: string;
 
   @ApiProperty({ example: 'Class 6' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
-  classStudying: string;
+  classStudying!: string;
 
   @ApiProperty({ type: AddressDto })
   @IsObject()
   @ValidateNested()
   @Type(() => AddressDto)
-  address: AddressDto;
+  address!: AddressDto;
 
   @ApiProperty({ enum: TargetExam, isArray: true, example: [TargetExam.SAINIK] })
   @IsArray()
   @IsEnum(TargetExam, { each: true })
-  targetExam: TargetExam[];
+  targetExam!: TargetExam[];
 
   @ApiPropertyOptional({ example: '2025-04-01' })
   @IsOptional()

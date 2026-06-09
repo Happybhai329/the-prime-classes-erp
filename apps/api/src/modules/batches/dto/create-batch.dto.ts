@@ -21,15 +21,15 @@ class BatchTimingDto {
   @ApiProperty({ example: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] })
   @IsArray()
   @IsString({ each: true })
-  days: string[];
+  days!: string[];
 
   @ApiProperty({ example: '09:00' })
   @IsString()
-  startTime: string;
+  startTime!: string;
 
   @ApiProperty({ example: '13:00' })
   @IsString()
-  endTime: string;
+  endTime!: string;
 }
 
 export class CreateBatchDto {
@@ -37,31 +37,31 @@ export class CreateBatchDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(255)
-  name: string;
+  name!: string;
 
   @ApiProperty({ example: 'SSF-2025' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(50)
-  code: string;
+  code!: string;
 
   @ApiProperty({ enum: TargetExam, example: TargetExam.SAINIK })
   @IsEnum(TargetExam)
-  targetExam: TargetExam;
+  targetExam!: TargetExam;
 
   @ApiProperty({ example: '2025-2026' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(20)
-  academicYear: string;
+  academicYear!: string;
 
   @ApiProperty({ example: '2025-04-01' })
   @IsDateString()
-  startDate: string;
+  startDate!: string;
 
   @ApiProperty({ example: '2026-03-31' })
   @IsDateString()
-  endDate: string;
+  endDate!: string;
 
   @ApiPropertyOptional({ example: 50 })
   @IsOptional()
