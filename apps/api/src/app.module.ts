@@ -20,6 +20,7 @@ import { MaterialsModule } from './modules/materials/materials.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HealthModule } from './modules/health/health.module';
 
 @Module({
@@ -68,6 +69,7 @@ import { HealthModule } from './modules/health/health.module';
     NotificationsModule,
     ReportsModule,
     AuditModule,
+    DashboardModule,
     HealthModule,
   ],
   providers: [
