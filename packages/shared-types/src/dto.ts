@@ -358,3 +358,219 @@ export interface ParentDashboard {
   }[];
   unreadNotifications: number;
 }
+
+// ---- Attendance (Phase 2) ----
+
+export interface AttendanceSessionSummary {
+  id: string;
+  batchId: string;
+  batchName: string;
+  sessionDate: string;
+  sessionType: string;
+  subjectName: string | null;
+  takenByName: string;
+  totalStudents: number;
+  presentCount: number;
+  absentCount: number;
+  lateCount: number;
+  leaveCount: number;
+  isFinalized: boolean;
+}
+
+export interface AttendanceSessionDetail extends AttendanceSessionSummary {
+  records: {
+    id: string;
+    studentId: string;
+    studentName: string;
+    rollNumber: string;
+    status: AttendanceStatus;
+    remarks: string | null;
+  }[];
+}
+
+export interface AttendanceDashboardData {
+  todaySessions: number;
+  todayBatchesCovered: number;
+  todayTotalStudents: number;
+  todayPresentCount: number;
+  todayPercentage: number;
+  weeklyTrend: { date: string; percentage: number }[];
+  batchWiseSummary: {
+    batchId: string;
+    batchName: string;
+    todayPercentage: number;
+    markedToday: boolean;
+  }[];
+}
+
+export interface AttendanceAnalytics {
+  overallPercentage: number;
+  absenceTrend: { date: string; absentCount: number }[];
+  topDefaulters: {
+    studentId: string;
+    studentName: string;
+    rollNumber: string;
+    batchName: string;
+    absentCount: number;
+    percentage: number;
+  }[];
+  perfectAttendance: {
+    studentId: string;
+    studentName: string;
+    rollNumber: string;
+    batchName: string;
+    totalDays: number;
+  }[];
+}
+
+export interface CreateAttendanceSessionRequest {
+  batchId: string;
+  sessionDate: string;
+  sessionType: string;
+  subjectId?: string;
+  records: {
+    studentId: string;
+    status: AttendanceStatus;
+    remarks?: string;
+  }[];
+}
+
+export interface BulkAttendanceRequest {
+  sessions: CreateAttendanceSessionRequest[];
+}
+
+// ---- Tests (Phase 2) ----
+
+export interface CreateTestRequest {
+  name: string;
+  testType: TestType;
+  batchId: string;
+  subjectIds: string[];
+  totalMarks: number;
+  durationMinutes?: number;
+  testDate: string;
+}
+
+export interface UpdateTestRequest {
+  name?: string;
+  testType?: TestType;
+  subjectIds?: string[];
+  totalMarks?: number;
+  durationMinutes?: number;
+  testDate?: string;
+  status?: TestStatus;
+}
+
+export interface TestDetail {
+  id: string;
+  name: string;
+  testType: TestType;
+  testDate: string;
+  totalMarks: number;
+  durationMinutes: number | null;
+  status: TestStatus;
+  batch: BatchSummary;
+  subjectIds: string[];
+  subjectNames: string[];
+  createdBy: string;
+  createdAt: string;
+  marksCount: number;
+  rankingsComputed: boolean;
+}
+
+export interface BulkMarkEntryRequest {
+  marks: TestMarksEntry[];
+}
+
+export interface SubjectAnalysis {
+  subjectId: string;
+  subjectName: string;
+  average: number;
+  highest: number;
+  lowest: number;
+  totalStudents: number;
+  absentCount: number;
+}
+
+// ---- Merit List (Phase 2) ----
+
+export interface MeritListItem {
+  rank: number;
+  studentId: string;
+  studentName: string;
+  rollNumber: string;
+  batchName: string;
+  totalMarks: number;
+  marksObtained: number;
+  percentage: number;
+  percentile: number;
+  grade: string;
+}
+
+export interface MeritListResponse {
+  testName?: string;
+  batchName?: string;
+  examType?: string;
+  generatedAt: string;
+  totalStudents: number;
+  items: MeritListItem[];
+}
+
+// ---- Student Performance (Phase 2) ----
+
+export interface StudentPerformanceProfile {
+  student: {
+    id: string;
+    name: string;
+    rollNumber: string;
+    batchName: string;
+  };
+  attendance: {
+    totalDays: number;
+    present: number;
+    absent: number;
+    late: number;
+    leave: number;
+    percentage: number;
+    monthlyTrend: { month: string; percentage: number }[];
+  };
+  tests: {
+    totalTests: number;
+    averagePercentage: number;
+    bestRank: number | null;
+    recentTests: StudentPerformanceTrend[];
+    rankTrend: { testName: string; testDate: string; rank: number }[];
+    subjectStrengths: { subject: string; avgPercentage: number }[];
+    weakAreas: { subject: string; avgPercentage: number }[];
+  };
+  marksProgress: { testName: string; testDate: string; percentage: number }[];
+}
+
+// ---- Parent Portal (Phase 2) ----
+
+export interface ParentChildDetail {
+  studentId: string;
+  studentName: string;
+  rollNumber: string;
+  batchName: string;
+  attendancePercentage: number;
+  recentTests: {
+    testName: string;
+    testDate: string;
+    marksObtained: number;
+    totalMarks: number;
+    percentage: number;
+    batchRank: number | null;
+  }[];
+  rankTrend: { testName: string; rank: number }[];
+  attendanceTrend: { date: string; status: string }[];
+  pendingFees: number;
+}
+
+export interface ParentPortalDashboard {
+  children: ParentChildDetail[];
+  unreadNotifications: number;
+  upcomingTests: TestSummary[];
+  recentNotices: NotificationItem[];
+}
+

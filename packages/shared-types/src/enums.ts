@@ -42,6 +42,7 @@ export enum TargetExam {
   RMS = 'RMS',
   RIMC = 'RIMC',
   SCHOLARSHIP = 'SCHOLARSHIP',
+  NAVODAYA = 'NAVODAYA',
   FOUNDATION = 'FOUNDATION',
 }
 

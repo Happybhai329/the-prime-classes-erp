@@ -101,6 +101,12 @@ export const sidebarNavigation: NavSection[] = [
         icon: BarChart3,
         permissions: [Permission.REPORT_ALL, Permission.REPORT_BATCH],
       },
+      {
+        label: 'Parent Portal',
+        path: '/parent-portal',
+        icon: Users,
+        permissions: [Permission.REPORT_OWN],
+      },
     ],
   },
   {

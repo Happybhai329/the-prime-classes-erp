@@ -26,12 +26,30 @@ import { BatchDetailPage } from './pages/batches/BatchDetailPage';
 import { CreateBatchPage } from './pages/batches/CreateBatchPage';
 import { EditBatchPage } from './pages/batches/EditBatchPage';
 
+// Attendance
+import { AttendanceDashboardPage } from './pages/attendance/AttendanceDashboardPage';
+import { MarkAttendancePage } from './pages/attendance/MarkAttendancePage';
+import { AttendanceHistoryPage } from './pages/attendance/AttendanceHistoryPage';
+import { AttendanceReportsPage } from './pages/attendance/AttendanceReportsPage';
+
+// Tests
+import { TestListPage } from './pages/tests/TestListPage';
+import { TestDetailPage } from './pages/tests/TestDetailPage';
+import { CreateTestPage } from './pages/tests/CreateTestPage';
+import { EditTestPage } from './pages/tests/EditTestPage';
+import { EnterMarksPage } from './pages/tests/EnterMarksPage';
+import { MeritListPage } from './pages/tests/MeritListPage';
+
+// Reports & Parent Portal
+import { ReportsPage } from './pages/reports/ReportsPage';
+import { ParentDashboardPage } from './pages/dashboard/ParentDashboardPage';
+
 // Placeholder for unbuilt modules
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center h-96">
     <div className="text-center">
       <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-      <p className="text-gray-500">This module is under development (Phase 2).</p>
+      <p className="text-gray-500">This module is under development (Phase 3).</p>
     </div>
   </div>
 );
@@ -74,12 +92,31 @@ function App() {
         <Route path="batches/:id" element={<BatchDetailPage />} />
         <Route path="batches/:id/edit" element={<EditBatchPage />} />
 
-        {/* Stubs for Phase 2 */}
+        {/* Attendance */}
+        <Route path="attendance">
+          <Route index element={<AttendanceDashboardPage />} />
+          <Route path="mark" element={<MarkAttendancePage />} />
+          <Route path="history" element={<AttendanceHistoryPage />} />
+          <Route path="reports" element={<AttendanceReportsPage />} />
+        </Route>
+
+        {/* Tests */}
+        <Route path="tests">
+          <Route index element={<TestListPage />} />
+          <Route path="create" element={<CreateTestPage />} />
+          <Route path=":id" element={<TestDetailPage />} />
+          <Route path=":id/edit" element={<EditTestPage />} />
+          <Route path=":id/marks" element={<EnterMarksPage />} />
+          <Route path=":id/merit-list" element={<MeritListPage />} />
+        </Route>
+
+        {/* Reports & Parent Portal */}
+        <Route path="reports" element={<ReportsPage />} />
+        <Route path="parent-portal" element={<ParentDashboardPage />} />
+
+        {/* Stubs for Phase 3 */}
         <Route path="faculty" element={<PlaceholderPage title="Faculty Management" />} />
-        <Route path="attendance" element={<PlaceholderPage title="Attendance Management" />} />
-        <Route path="tests" element={<PlaceholderPage title="Test & Assessment Management" />} />
         <Route path="fees" element={<PlaceholderPage title="Fee Collection & Invoicing" />} />
-        <Route path="reports" element={<PlaceholderPage title="Analytics & Reports" />} />
         <Route path="settings" element={<PlaceholderPage title="System Settings" />} />
         
         {/* Catch-all 404 inside AppShell */}

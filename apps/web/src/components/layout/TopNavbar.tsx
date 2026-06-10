@@ -1,5 +1,6 @@
 import React from 'react';
 import { Menu, Bell } from 'lucide-react';
+import { NotificationPopover } from './NotificationPopover';
 import { Breadcrumbs } from './Breadcrumbs';
 import { UserMenu } from './UserMenu';
 
@@ -34,16 +35,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Notifications */}
-        <button
-          className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
-          aria-label="Notifications"
-          id="notification-bell"
-        >
-          <Bell className="h-5 w-5" />
-          {/* Unread indicator */}
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
+        <NotificationPopover />
 
         {/* Divider */}
         <div className="hidden md:block w-px h-8 bg-gray-200 mx-2" />
