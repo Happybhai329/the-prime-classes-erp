@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -6,6 +6,9 @@ import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -48,6 +51,16 @@ async function bootstrap() {
       },
     }),
   );
+
+  // Global interceptors — consistent response envelope & logging
+  const reflector = app.get(Reflector);
+  app.useGlobalInterceptors(
+    new LoggingInterceptor(),
+    new ResponseTransformInterceptor(reflector),
+  );
+
+  // Global exception filter — consistent error envelope
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   // Swagger documentation (development only)
   if (configService.get('NODE_ENV') !== 'production') {

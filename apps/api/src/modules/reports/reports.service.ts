@@ -125,13 +125,13 @@ export class ReportsService {
     });
     if (!batch) throw new NotFoundException('Batch not found');
 
-    const list = await this.generateOverallMeritList(tenantId, { batchId });
+    const list: any = await this.generateOverallMeritList(tenantId, { batchId });
     list.batchName = batch.name;
     return list;
   }
 
   async getExamMeritList(tenantId: string, examType: TargetExam) {
-    const list = await this.generateOverallMeritList(tenantId, { targetExam: examType });
+    const list: any = await this.generateOverallMeritList(tenantId, { targetExam: examType });
     list.examType = examType;
     return list;
   }
@@ -237,8 +237,8 @@ export class ReportsService {
     const student = await this.prisma.student.findFirst({
       where: { id: studentId, tenantId },
       include: {
-        enrollments: {
-          where: { isActive: true },
+        batchEnrollments: {
+          where: { status: 'ACTIVE' },
           include: { batch: { select: { name: true } } },
         },
       },
@@ -246,7 +246,7 @@ export class ReportsService {
 
     if (!student) throw new NotFoundException('Student not found');
 
-    const batchName = student.enrollments[0]?.batch.name || 'Unknown';
+    const batchName = student.batchEnrollments[0]?.batch.name || 'Unknown';
 
     // 1. Attendance Data
     const attendanceRecords = await this.prisma.attendanceRecord.findMany({
@@ -381,11 +381,15 @@ export class ReportsService {
     const parent = await this.prisma.parent.findFirst({
       where: { userId, tenantId },
       include: {
-        children: {
+        studentMappings: {
           include: {
-            enrollments: {
-              where: { isActive: true },
-              include: { batch: { select: { name: true } } },
+            student: {
+              include: {
+                batchEnrollments: {
+                  where: { status: 'ACTIVE' },
+                  include: { batch: { select: { name: true } } },
+                },
+              },
             },
           },
         },
@@ -395,7 +399,8 @@ export class ReportsService {
     if (!parent) throw new NotFoundException('Parent profile not found');
 
     const childrenData = await Promise.all(
-      parent.children.map(async (child) => {
+      parent.studentMappings.map(async (mapping: any) => {
+        const child = mapping.student;
         const perf = await this.getStudentPerformanceProfile(tenantId, child.id);
 
         const recentTests = await this.prisma.testMarks.findMany({
@@ -416,7 +421,7 @@ export class ReportsService {
           studentId: child.id,
           studentName: `${child.firstName} ${child.lastName}`,
           rollNumber: child.rollNumber,
-          batchName: child.enrollments[0]?.batch.name || 'Unknown',
+          batchName: child.batchEnrollments[0]?.batch.name || 'Unknown',
           attendancePercentage: perf.attendance.percentage,
           recentTests: recentTests.map(m => ({
             testName: m.test.name,
@@ -437,7 +442,7 @@ export class ReportsService {
       where: {
         tenantId,
         status: 'SCHEDULED',
-        batchId: { in: parent.children.flatMap(c => c.enrollments.map(e => e.batchId)) },
+        batchId: { in: parent.studentMappings.flatMap((m: any) => m.student.batchEnrollments.map((e: any) => e.batchId)) },
       },
       select: { id: true, name: true, testDate: true, batch: { select: { name: true } } },
       orderBy: { testDate: 'asc' },
@@ -451,7 +456,7 @@ export class ReportsService {
     const recentNotices = await this.prisma.notificationLog.findMany({
       where: { userId, notification: { tenantId } },
       include: { notification: true },
-      orderBy: { notification: { createdAt: 'desc' } },
+      orderBy: { notification: { sentAt: 'desc' } },
       take: 5,
     });
 
@@ -464,12 +469,12 @@ export class ReportsService {
         date: t.testDate.toISOString().split('T')[0],
         batchName: t.batch.name,
       })),
-      recentNotices: recentNotices.map(n => ({
+      recentNotices: recentNotices.map((n: any) => ({
         id: n.notification.id,
         title: n.notification.title,
         body: n.notification.body,
         type: n.notification.type,
-        date: n.notification.createdAt.toISOString(),
+        date: n.notification.sentAt.toISOString(),
         isRead: !!n.readAt,
       })),
     };

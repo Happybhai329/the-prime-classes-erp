@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, Bell } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { NotificationPopover } from './NotificationPopover';
 import { Breadcrumbs } from './Breadcrumbs';
 import { UserMenu } from './UserMenu';

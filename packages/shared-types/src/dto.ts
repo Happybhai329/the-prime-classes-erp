@@ -15,6 +15,13 @@ import {
   PaymentMode,
   MaterialType,
   NotificationType,
+  // Phase 3
+  NoticePriority,
+  NoticeTargetAudience,
+  AnnouncementCategory,
+  TicketStatus,
+  TicketCategory,
+  DocumentType,
 } from './enums';
 
 // ---- Common ----
@@ -574,3 +581,208 @@ export interface ParentPortalDashboard {
   recentNotices: NotificationItem[];
 }
 
+// ============================================================
+// Phase 3 — Notice Management
+// ============================================================
+
+export interface NoticeItem {
+  id: string;
+  title: string;
+  description: string;
+  priority: NoticePriority;
+  targetAudience: NoticeTargetAudience;
+  batchIds: string[];
+  publishDate: string;
+  expiryDate: string | null;
+  isPublished: boolean;
+  createdBy: string;
+  createdByName: string;
+  isRead?: boolean;
+  createdAt: string;
+}
+
+export interface CreateNoticeRequest {
+  title: string;
+  description: string;
+  priority: NoticePriority;
+  targetAudience: NoticeTargetAudience;
+  batchIds?: string[];
+  publishDate: string;
+  expiryDate?: string;
+}
+
+export interface UpdateNoticeRequest {
+  title?: string;
+  description?: string;
+  priority?: NoticePriority;
+  targetAudience?: NoticeTargetAudience;
+  batchIds?: string[];
+  publishDate?: string;
+  expiryDate?: string;
+  isPublished?: boolean;
+}
+
+// ============================================================
+// Phase 3 — Announcement System
+// ============================================================
+
+export interface AnnouncementItem {
+  id: string;
+  title: string;
+  content: string;
+  category: AnnouncementCategory;
+  attachments: string[];
+  scheduledAt: string | null;
+  publishedAt: string | null;
+  createdBy: string;
+  createdByName: string;
+  createdAt: string;
+}
+
+export interface CreateAnnouncementRequest {
+  title: string;
+  content: string;
+  category: AnnouncementCategory;
+  attachmentUrls?: string[];
+  scheduledAt?: string;
+}
+
+export interface UpdateAnnouncementRequest {
+  title?: string;
+  content?: string;
+  category?: AnnouncementCategory;
+  attachmentUrls?: string[];
+  scheduledAt?: string;
+}
+
+// ============================================================
+// Phase 3 — Communication Center (Tickets)
+// ============================================================
+
+export interface TicketItem {
+  id: string;
+  subject: string;
+  category: TicketCategory;
+  status: TicketStatus;
+  createdBy: string;
+  createdByName: string;
+  createdByRole: string;
+  assignedToName: string | null;
+  lastMessage: string | null;
+  messageCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TicketDetail extends TicketItem {
+  messages: TicketMessageItem[];
+}
+
+export interface TicketMessageItem {
+  id: string;
+  ticketId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: string;
+  content: string;
+  attachmentUrl: string | null;
+  createdAt: string;
+}
+
+export interface CreateTicketRequest {
+  subject: string;
+  category: TicketCategory;
+  message: string;
+}
+
+export interface ReplyTicketRequest {
+  message: string;
+  attachmentUrl?: string;
+}
+
+export interface UpdateTicketStatusRequest {
+  status: TicketStatus;
+}
+
+// ============================================================
+// Phase 3 — Document Center
+// ============================================================
+
+export interface DocumentItem {
+  id: string;
+  title: string;
+  documentType: DocumentType;
+  fileUrl: string;
+  fileSize: number;
+  mimeType: string | null;
+  version: number;
+  studentId: string | null;
+  studentName: string | null;
+  uploadedBy: string;
+  uploadedByName: string;
+  createdAt: string;
+}
+
+export interface UploadDocumentRequest {
+  title: string;
+  documentType: DocumentType;
+  studentId?: string;
+}
+
+// ============================================================
+// Phase 3 — Audit & Activity Logs
+// ============================================================
+
+export interface AuditLogItem {
+  id: string;
+  userId: string;
+  userName: string;
+  userRole: string;
+  action: string;
+  resource: string;
+  resourceId: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+}
+
+export interface AuditActivityFeed {
+  logs: AuditLogItem[];
+  meta: PaginationMeta;
+}
+
+// ============================================================
+// Phase 3 — Enhanced Parent Portal
+// ============================================================
+
+export type PerformanceCategory = 'EXCELLENT' | 'GOOD' | 'NEEDS_IMPROVEMENT' | 'CRITICAL';
+
+export interface ParentDashboardEnhanced extends ParentPortalDashboard {
+  children: (ParentChildDetail & {
+    performanceCategory: PerformanceCategory;
+  })[];
+}
+
+export interface SubjectAnalysisItem {
+  subjectId: string;
+  subjectName: string;
+  averagePercentage: number;
+  testCount: number;
+  trend: 'UP' | 'DOWN' | 'STABLE';
+}
+
+// ============================================================
+// Phase 3 — Mobile API Types
+// ============================================================
+
+export interface MobileDeviceRegisterRequest {
+  fcmToken: string;
+  platform: 'ANDROID' | 'IOS';
+  deviceId: string;
+}
+
+export interface MobileApiEnvelope<T = unknown> {
+  success: boolean;
+  data: T;
+  message: string;
+  timestamp: string;
+}

@@ -1,14 +1,13 @@
 import React from 'react';
-import { useParentDashboard } from '@/hooks/useReports';
+import { useParentDashboard } from '@/hooks/useDashboard';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { StatCard } from '@/components/ui/StatCard';
 import { Calendar, Award, BookOpen, AlertCircle } from 'lucide-react';
 
 export const ParentDashboardPage: React.FC = () => {
-  const { data, isLoading } = useParentDashboard();
+  const { data: dashboardData, isLoading } = useParentDashboard();
 
-  if (isLoading || !data) return <LoadingSpinner size="lg" className="py-20" />;
+  if (isLoading || !dashboardData) return <LoadingSpinner size="lg" className="py-20" />;
 
   return (
     <div id="parent-dashboard-page" className="max-w-6xl mx-auto">
@@ -17,7 +16,7 @@ export const ParentDashboardPage: React.FC = () => {
         description="Track your children's academic progress and attendance" 
       />
 
-      {data.children.length === 0 ? (
+      {dashboardData.children.length === 0 ? (
         <div className="card p-12 text-center">
           <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900">No Children Linked</h2>
@@ -25,7 +24,7 @@ export const ParentDashboardPage: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-8">
-          {data.children.map((child) => (
+          {dashboardData.children.map((child: any) => (
             <div key={child.studentId} className="card overflow-hidden">
               <div className="bg-gradient-to-r from-primary-700 to-primary-900 p-6 text-white flex justify-between items-center">
                 <div>
@@ -44,7 +43,7 @@ export const ParentDashboardPage: React.FC = () => {
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {child.recentTests.length > 0 ? (
-                    child.recentTests.map((test, i) => (
+                    child.recentTests.map((test: any, i: any) => (
                       <div key={i} className="border border-gray-100 bg-gray-50 rounded-xl p-4">
                         <p className="text-sm font-medium text-gray-900 truncate" title={test.testName}>{test.testName}</p>
                         <p className="text-xs text-gray-500 mt-1">{test.testDate}</p>
@@ -75,15 +74,15 @@ export const ParentDashboardPage: React.FC = () => {
                 <Calendar className="h-5 w-5 text-primary-600" /> Upcoming Tests
               </h3>
               <div className="space-y-3">
-                {data.upcomingTests.length > 0 ? (
-                  data.upcomingTests.map(t => (
+                {dashboardData.upcomingTests.length > 0 ? (
+                  dashboardData.upcomingTests.map((t: any) => (
                     <div key={t.id} className="flex justify-between items-center p-3 border border-gray-100 rounded-lg bg-white">
                       <div>
                         <p className="font-medium text-gray-900">{t.name}</p>
                         <p className="text-xs text-gray-500">{t.batchName}</p>
                       </div>
                       <div className="text-right">
-                        <span className="text-sm font-medium text-primary-600">{t.date}</span>
+                        <span className="text-sm font-medium text-primary-600">{t.testDate}</span>
                       </div>
                     </div>
                   ))
@@ -98,13 +97,13 @@ export const ParentDashboardPage: React.FC = () => {
                 <BookOpen className="h-5 w-5 text-primary-600" /> Recent Notices
               </h3>
               <div className="space-y-3">
-                {data.recentNotices.length > 0 ? (
-                  data.recentNotices.map(n => (
+                {dashboardData.recentNotices.length > 0 ? (
+                  dashboardData.recentNotices.map((n: any) => (
                     <div key={n.id} className="p-3 border border-gray-100 rounded-lg bg-white relative">
                       {!n.isRead && <span className="absolute top-3 right-3 w-2 h-2 bg-primary-500 rounded-full" />}
                       <p className="font-medium text-gray-900 text-sm pr-4">{n.title}</p>
                       <p className="text-xs text-gray-500 mt-1 line-clamp-1">{n.body}</p>
-                      <p className="text-xs text-gray-400 mt-2">{new Date(n.date).toLocaleDateString()}</p>
+                      <p className="text-xs text-gray-400 mt-2">{new Date(n.sentAt).toLocaleDateString()}</p>
                     </div>
                   ))
                 ) : (

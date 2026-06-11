@@ -28,3 +28,18 @@ export const useFeeTrendsChart = () =>
     queryFn: dashboardService.getFeeTrends,
     staleTime: 5 * 60 * 1000,
   });
+
+export const useParentDashboard = () =>
+  useQuery({
+    queryKey: ['dashboard', 'parent'],
+    queryFn: dashboardService.getParentDashboard,
+    staleTime: 2 * 60 * 1000,
+  });
+
+export const useChildAnalytics = (studentId: string) =>
+  useQuery({
+    queryKey: ['dashboard', 'parent', 'child', studentId],
+    queryFn: () => dashboardService.getChildAnalytics(studentId),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!studentId,
+  });

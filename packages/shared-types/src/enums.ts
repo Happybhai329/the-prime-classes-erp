@@ -139,6 +139,11 @@ export enum NotificationType {
   FEE_DUE = 'FEE_DUE',
   ANNOUNCEMENT = 'ANNOUNCEMENT',
   EXAM_ALERT = 'EXAM_ALERT',
+  // Phase 3
+  LOW_ATTENDANCE_ALERT = 'LOW_ATTENDANCE_ALERT',
+  TEST_SCHEDULED = 'TEST_SCHEDULED',
+  RESULT_PUBLISHED = 'RESULT_PUBLISHED',
+  NOTICE_PUBLISHED = 'NOTICE_PUBLISHED',
 }
 
 export enum NotificationDeliveryStatus {
@@ -146,4 +151,59 @@ export enum NotificationDeliveryStatus {
   DELIVERED = 'DELIVERED',
   READ = 'READ',
   FAILED = 'FAILED',
+}
+
+// ---- Notices (Phase 3) ----
+
+export enum NoticePriority {
+  LOW = 'LOW',
+  NORMAL = 'NORMAL',
+  HIGH = 'HIGH',
+  URGENT = 'URGENT',
+}
+
+export enum NoticeTargetAudience {
+  ALL_STUDENTS = 'ALL_STUDENTS',
+  SPECIFIC_BATCH = 'SPECIFIC_BATCH',
+  SPECIFIC_PARENT_GROUP = 'SPECIFIC_PARENT_GROUP',
+  FACULTY = 'FACULTY',
+  ALL = 'ALL',
+}
+
+// ---- Announcements (Phase 3) ----
+
+export enum AnnouncementCategory {
+  ACADEMIC = 'ACADEMIC',
+  HOLIDAY = 'HOLIDAY',
+  EXAM = 'EXAM',
+  EMERGENCY = 'EMERGENCY',
+  GENERAL = 'GENERAL',
+}
+
+// ---- Communication / Tickets (Phase 3) ----
+
+export enum TicketStatus {
+  OPEN = 'OPEN',
+  IN_PROGRESS = 'IN_PROGRESS',
+  RESOLVED = 'RESOLVED',
+  CLOSED = 'CLOSED',
+}
+
+export enum TicketCategory {
+  ACADEMIC = 'ACADEMIC',
+  ATTENDANCE = 'ATTENDANCE',
+  FEES = 'FEES',
+  TECHNICAL = 'TECHNICAL',
+  GENERAL = 'GENERAL',
+}
+
+// ---- Documents (Phase 3) ----
+
+export enum DocumentType {
+  REPORT_CARD = 'REPORT_CARD',
+  ADMIT_CARD = 'ADMIT_CARD',
+  TEST_REPORT = 'TEST_REPORT',
+  CERTIFICATE = 'CERTIFICATE',
+  NOTICE_PDF = 'NOTICE_PDF',
+  OTHER = 'OTHER',
 }

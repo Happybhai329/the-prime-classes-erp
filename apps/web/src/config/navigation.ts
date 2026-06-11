@@ -9,6 +9,11 @@ import {
   IndianRupee,
   BarChart3,
   Settings,
+  Bell,
+  Megaphone,
+  LifeBuoy,
+  FileText,
+  ShieldCheck,
 } from 'lucide-react';
 import { Permission } from '@prime/shared-types';
 
@@ -110,7 +115,43 @@ export const sidebarNavigation: NavSection[] = [
     ],
   },
   {
+    title: 'Communication',
     items: [
+      {
+        label: 'Notice Board',
+        path: '/notices',
+        icon: Bell,
+        permissions: [Permission.NOTICE_VIEW],
+      },
+      {
+        label: 'Announcements',
+        path: '/announcements',
+        icon: Megaphone,
+        permissions: [Permission.ANNOUNCEMENT_VIEW],
+      },
+      {
+        label: 'Support Tickets',
+        path: '/tickets',
+        icon: LifeBuoy,
+        permissions: [Permission.TICKET_VIEW_OWN, Permission.TICKET_VIEW_ALL],
+      },
+    ],
+  },
+  {
+    title: 'Resources & System',
+    items: [
+      {
+        label: 'Documents',
+        path: '/documents',
+        icon: FileText,
+        permissions: [Permission.DOCUMENT_VIEW_OWN, Permission.DOCUMENT_VIEW_ALL],
+      },
+      {
+        label: 'Audit Logs',
+        path: '/audit',
+        icon: ShieldCheck,
+        permissions: [Permission.AUDIT_VIEW],
+      },
       {
         label: 'Settings',
         path: '/settings',

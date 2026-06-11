@@ -77,6 +77,28 @@ export enum Permission {
 
   // Audit
   AUDIT_VIEW = 'audit:view',
+
+  // Notices (Phase 3)
+  NOTICE_CREATE = 'notice:create',
+  NOTICE_EDIT = 'notice:edit',
+  NOTICE_DELETE = 'notice:delete',
+  NOTICE_VIEW = 'notice:view',
+
+  // Announcements (Phase 3)
+  ANNOUNCEMENT_CREATE = 'announcement:create',
+  ANNOUNCEMENT_VIEW = 'announcement:view',
+
+  // Communication / Tickets (Phase 3)
+  TICKET_CREATE = 'ticket:create',
+  TICKET_VIEW_ALL = 'ticket:view:all',
+  TICKET_VIEW_OWN = 'ticket:view:own',
+  TICKET_RESPOND = 'ticket:respond',
+
+  // Documents (Phase 3)
+  DOCUMENT_UPLOAD = 'document:upload',
+  DOCUMENT_VIEW_ALL = 'document:view:all',
+  DOCUMENT_VIEW_OWN = 'document:view:own',
+  DOCUMENT_DELETE = 'document:delete',
 }
 
 import { UserRole } from './enums';
@@ -128,6 +150,21 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.REPORT_ALL,
     Permission.REPORT_BATCH,
     Permission.AUDIT_VIEW,
+    // Phase 3
+    Permission.NOTICE_CREATE,
+    Permission.NOTICE_EDIT,
+    Permission.NOTICE_DELETE,
+    Permission.NOTICE_VIEW,
+    Permission.ANNOUNCEMENT_CREATE,
+    Permission.ANNOUNCEMENT_VIEW,
+    Permission.TICKET_CREATE,
+    Permission.TICKET_VIEW_ALL,
+    Permission.TICKET_VIEW_OWN,
+    Permission.TICKET_RESPOND,
+    Permission.DOCUMENT_UPLOAD,
+    Permission.DOCUMENT_VIEW_ALL,
+    Permission.DOCUMENT_VIEW_OWN,
+    Permission.DOCUMENT_DELETE,
   ],
 
   [UserRole.FACULTY]: [
@@ -147,6 +184,15 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.NOTIFICATION_SEND,
     Permission.NOTIFICATION_VIEW_OWN,
     Permission.REPORT_BATCH,
+    // Phase 3
+    Permission.NOTICE_CREATE,
+    Permission.NOTICE_VIEW,
+    Permission.ANNOUNCEMENT_VIEW,
+    Permission.TICKET_VIEW_ALL,
+    Permission.TICKET_VIEW_OWN,
+    Permission.TICKET_RESPOND,
+    Permission.DOCUMENT_UPLOAD,
+    Permission.DOCUMENT_VIEW_ALL,
   ],
 
   [UserRole.STUDENT]: [
@@ -167,6 +213,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.FEE_VIEW_OWN,
     Permission.NOTIFICATION_VIEW_OWN,
     Permission.REPORT_OWN,
+    // Phase 3
+    Permission.NOTICE_VIEW,
+    Permission.ANNOUNCEMENT_VIEW,
+    Permission.TICKET_CREATE,
+    Permission.TICKET_VIEW_OWN,
+    Permission.DOCUMENT_VIEW_OWN,
   ],
 
   [UserRole.ACCOUNTANT]: [

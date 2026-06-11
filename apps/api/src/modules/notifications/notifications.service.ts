@@ -90,7 +90,7 @@ export class NotificationsService {
           notification: true,
         },
         orderBy: {
-          notification: { createdAt: 'desc' },
+          notification: { sentAt: 'desc' },
         },
         skip: query.skip,
         take: query.take,
@@ -101,13 +101,13 @@ export class NotificationsService {
     const data = logs.map(log => ({
       id: log.notificationId, // Return notification ID as primary identifier
       logId: log.id,
-      title: log.notification.title,
-      body: log.notification.body,
-      type: log.notification.type,
-      data: log.notification.data,
+      title: (log as any).notification.title,
+      body: (log as any).notification.body,
+      type: (log as any).notification.type,
+      data: (log as any).notification.data,
       isRead: log.readAt !== null,
       readAt: log.readAt,
-      createdAt: log.notification.createdAt,
+      createdAt: (log as any).notification.sentAt,
     }));
 
     return {
@@ -173,7 +173,7 @@ export class NotificationsService {
     const parents = await this.prisma.parent.findMany({
       where: {
         tenantId,
-        children: { some: { id: { in: studentIds } } },
+        studentMappings: { some: { studentId: { in: studentIds } } },
       },
       select: { userId: true },
     });
@@ -184,7 +184,7 @@ export class NotificationsService {
       await this.create(tenantId, {
         title: 'Attendance Alert',
         body: `Your child was marked absent on ${date}.`,
-        type: NotificationType.ATTENDANCE_ALERT,
+        type: NotificationType.LOW_ATTENDANCE_ALERT,
         targetIds: parentUserIds,
       });
     }
@@ -193,14 +193,14 @@ export class NotificationsService {
   async triggerTestScheduled(tenantId: string, batchId: string, testName: string, testDate: string) {
     // Notify parents and students of the batch
     const students = await this.prisma.student.findMany({
-      where: { tenantId, enrollments: { some: { batchId, isActive: true } } },
-      select: { userId: true, parents: { select: { userId: true } } },
+      where: { tenantId, batchEnrollments: { some: { batchId, status: 'ACTIVE' } } },
+      select: { userId: true, parentMappings: { select: { parent: { select: { userId: true } } } } },
     });
 
     const targetIds = new Set<string>();
     students.forEach(s => {
       if (s.userId) targetIds.add(s.userId);
-      s.parents.forEach(p => { if (p.userId) targetIds.add(p.userId); });
+      s.parentMappings.forEach((pm: any) => { if (pm.parent?.userId) targetIds.add(pm.parent.userId); });
     });
 
     if (targetIds.size > 0) {
@@ -211,5 +211,78 @@ export class NotificationsService {
         targetIds: Array.from(targetIds),
       });
     }
+  }
+
+  async triggerFeeDue(tenantId: string, invoiceId: string, studentId: string, amount: number, dueDate: Date) {
+    const parent = await this.prisma.parent.findFirst({
+      where: { tenantId, studentMappings: { some: { studentId } } },
+      select: { userId: true },
+    });
+
+    if (parent?.userId) {
+      await this.create(tenantId, {
+        title: 'Fee Payment Due',
+        body: `A fee payment of ₹${amount} is due on ${dueDate.toISOString().split('T')[0]}.`,
+        type: NotificationType.FEE_DUE,
+        targetIds: [parent.userId],
+        data: { invoiceId },
+      });
+    }
+  }
+
+  async triggerNoticePublished(tenantId: string, noticeId: string, title: string, targetRoles?: string[], targetBatchIds?: string[]) {
+    // If specific roles
+    if (targetRoles && targetRoles.length > 0) {
+      await this.create(tenantId, {
+        title: 'New Notice',
+        body: title,
+        type: NotificationType.ANNOUNCEMENT,
+        targetRoles: targetRoles as UserRole[],
+        data: { noticeId },
+      });
+    } else if (targetBatchIds && targetBatchIds.length > 0) {
+      // Find all students and parents of these batches
+      const students = await this.prisma.student.findMany({
+        where: { tenantId, batchEnrollments: { some: { batchId: { in: targetBatchIds } } } },
+        select: { userId: true, parentMappings: { select: { parent: { select: { userId: true } } } } }
+      });
+      
+      const targetIds = new Set<string>();
+      students.forEach(s => {
+        if (s.userId) targetIds.add(s.userId);
+        s.parentMappings.forEach(pm => {
+          if (pm.parent?.userId) targetIds.add(pm.parent.userId);
+        });
+      });
+
+      if (targetIds.size > 0) {
+        await this.create(tenantId, {
+          title: 'New Notice',
+          body: title,
+          type: NotificationType.ANNOUNCEMENT,
+          targetIds: Array.from(targetIds),
+          data: { noticeId },
+        });
+      }
+    } else {
+      // All
+      await this.create(tenantId, {
+        title: 'New Notice',
+        body: title,
+        type: NotificationType.ANNOUNCEMENT,
+        targetRoles: [UserRole.ADMIN, UserRole.FACULTY, UserRole.STUDENT, UserRole.PARENT],
+        data: { noticeId },
+      });
+    }
+  }
+
+  async triggerTicketUpdate(tenantId: string, ticketId: string, userIdToNotify: string, status: string) {
+    await this.create(tenantId, {
+      title: 'Support Ticket Update',
+      body: `Your ticket has been updated to: ${status}`,
+      type: NotificationType.ANNOUNCEMENT,
+      targetIds: [userIdToNotify],
+      data: { ticketId },
+    });
   }
 }

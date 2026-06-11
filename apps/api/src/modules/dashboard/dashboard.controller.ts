@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { Permission } from '@prime/shared-types';
@@ -39,5 +39,29 @@ export class DashboardController {
   @ApiOperation({ summary: 'Fee collection trends over 12 months' })
   async getFeeTrends(@CurrentUser('tenantId') tenantId: string) {
     return this.dashboardService.getFeeCollectionChart(tenantId);
+  }
+
+  // ----------------------------------------------------------------------
+  // PARENT ENDPOINTS
+  // ----------------------------------------------------------------------
+
+  @Get('parent')
+  @Permissions(Permission.PARENT_READ_OWN)
+  @ApiOperation({ summary: 'Get parent dashboard with linked children' })
+  async getParentDashboard(
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('sub') userId: string,
+  ) {
+    return this.dashboardService.getParentDashboard(tenantId, userId);
+  }
+
+  @Get('parent/child/:studentId/analytics')
+  @Permissions(Permission.PARENT_READ_OWN)
+  @ApiOperation({ summary: 'Get analytics for a specific child' })
+  async getChildAnalytics(
+    @CurrentUser('tenantId') tenantId: string,
+    @Param('studentId') studentId: string,
+  ) {
+    return this.dashboardService.getChildAnalytics(tenantId, studentId);
   }
 }

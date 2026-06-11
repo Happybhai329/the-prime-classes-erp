@@ -44,6 +44,17 @@ import { MeritListPage } from './pages/tests/MeritListPage';
 import { ReportsPage } from './pages/reports/ReportsPage';
 import { ParentDashboardPage } from './pages/dashboard/ParentDashboardPage';
 
+// Communication & Notices
+import { NoticesPage } from './pages/communication/NoticesPage';
+import { AnnouncementsPage } from './pages/communication/AnnouncementsPage';
+import { SupportTicketsPage } from './pages/communication/SupportTicketsPage';
+
+// Documents
+import { DocumentsPage } from './pages/documents/DocumentsPage';
+
+// Audit
+import { AuditDashboardPage } from './pages/audit/AuditDashboardPage';
+
 // Placeholder for unbuilt modules
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center h-96">
@@ -113,6 +124,15 @@ function App() {
         {/* Reports & Parent Portal */}
         <Route path="reports" element={<ReportsPage />} />
         <Route path="parent-portal" element={<ParentDashboardPage />} />
+
+        {/* Communication & Documents */}
+        <Route path="notices" element={<NoticesPage />} />
+        <Route path="announcements" element={<AnnouncementsPage />} />
+        <Route path="tickets" element={<SupportTicketsPage />} />
+        <Route path="documents" element={<DocumentsPage />} />
+
+        {/* Audit */}
+        <Route path="audit" element={<AuditDashboardPage />} />
 
         {/* Stubs for Phase 3 */}
         <Route path="faculty" element={<PlaceholderPage title="Faculty Management" />} />

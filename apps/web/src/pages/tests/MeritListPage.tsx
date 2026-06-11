@@ -1,8 +1,7 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, Trophy } from 'lucide-react';
 import { useMeritList } from '@/hooks/useTests';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { DataTable } from '@/components/ui/DataTable';
 
@@ -74,7 +73,7 @@ export const MeritListPage: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Merit_List_${data.testName.replace(/\s+/g, '_')}.csv`);
+    link.setAttribute('download', `Merit_List_${((data as any).testName || 'Test').replace(/\s+/g, '_')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -88,7 +87,7 @@ export const MeritListPage: React.FC = () => {
             <ArrowLeft className="h-5 w-5" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Merit List: {data.testName}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Merit List: {(data as any).testName}</h1>
             <p className="text-sm text-gray-500 mt-1">
               {data.batchName} • {data.totalStudents} Students Ranked • Generated: {new Date(data.generatedAt).toLocaleString()}
             </p>

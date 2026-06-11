@@ -41,6 +41,10 @@ model Tenant {
   studyMaterials     StudyMaterial[]
   notifications      Notification[]
   auditLogs          AuditLog[]
+  // Phase 3
+  notices            Notice[]
+  supportTickets     SupportTicket[]
+  documents          Document[]
 
   @@map("tenants")
 }
@@ -87,6 +91,13 @@ model User {
   notificationsCreated Notification[] @relation("NotificationCreatedBy")
   notificationLogs NotificationLog[]
   auditLogs        AuditLog[]
+  // Phase 3
+  noticesCreated   Notice[]           @relation("NoticeCreatedBy")
+  noticeReadLogs   NoticeReadLog[]    @relation("NoticeReadBy")
+  ticketsCreated   SupportTicket[]    @relation("TicketCreatedBy")
+  ticketsAssigned  SupportTicket[]    @relation("TicketAssignedTo")
+  ticketMessages   TicketMessage[]    @relation("TicketMessageSender")
+  documentsUploaded Document[]        @relation("DocumentUploadedBy")
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -139,6 +150,8 @@ model Student {
   testMarks       TestMarks[]
   testRankings    TestRanking[]
   feeInvoices     FeeInvoice[]
+  // Phase 3
+  uploadedDocuments Document[]
 
   @@unique([tenantId, rollNumber])
   @@index([tenantId])
@@ -649,12 +662,12 @@ model Notification {
   targetRoles UserRole[]         @map("target_roles")
   targetIds   String[]           @map("target_ids") @db.Uuid
   data        Json               @default("{}")
-  createdBy   String             @map("created_by") @db.Uuid
+  createdBy   String?            @map("created_by") @db.Uuid
   sentAt      DateTime           @default(now()) @map("sent_at")
 
   // Relations
   tenant      Tenant             @relation(fields: [tenantId], references: [id])
-  creator     User               @relation("NotificationCreatedBy", fields: [createdBy], references: [id])
+  creator     User?              @relation("NotificationCreatedBy", fields: [createdBy], references: [id])
   logs        NotificationLog[]
 
   @@index([tenantId])
@@ -668,6 +681,11 @@ enum NotificationType {
   FEE_DUE
   ANNOUNCEMENT
   EXAM_ALERT
+  // Phase 3
+  LOW_ATTENDANCE_ALERT
+  TEST_SCHEDULED
+  RESULT_PUBLISHED
+  NOTICE_PUBLISHED
 }
 
 model NotificationLog {
@@ -723,4 +741,160 @@ model AuditLog {
   @@index([resource])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ============================================================
+// NOTICES (Phase 3)
+// ============================================================
+
+model Notice {
+  id              String               @id @default(uuid()) @db.Uuid
+  tenantId        String               @map("tenant_id") @db.Uuid
+  title           String               @db.VarChar(255)
+  description     String               @db.Text
+  priority        NoticePriority       @default(NORMAL)
+  targetAudience  NoticeTargetAudience @map("target_audience")
+  batchIds        String[]             @map("batch_ids") @db.Uuid
+  publishDate     DateTime             @map("publish_date") @db.Date
+  expiryDate      DateTime?            @map("expiry_date") @db.Date
+  isPublished     Boolean              @default(false) @map("is_published")
+  createdBy       String               @map("created_by") @db.Uuid
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  // Relations
+  tenant          Tenant               @relation(fields: [tenantId], references: [id])
+  creator         User                 @relation("NoticeCreatedBy", fields: [createdBy], references: [id])
+  readLogs        NoticeReadLog[]
+
+  @@index([tenantId])
+  @@index([publishDate])
+  @@index([isPublished])
+  @@map("notices")
+}
+
+enum NoticePriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NoticeTargetAudience {
+  ALL_STUDENTS
+  SPECIFIC_BATCH
+  SPECIFIC_PARENT_GROUP
+  FACULTY
+  ALL
+}
+
+model NoticeReadLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  noticeId  String   @map("notice_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  readAt    DateTime @default(now()) @map("read_at")
+
+  // Relations
+  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  user      User     @relation("NoticeReadBy", fields: [userId], references: [id])
+
+  @@unique([noticeId, userId])
+  @@map("notice_read_logs")
+}
+
+// ============================================================
+// SUPPORT TICKETS (Phase 3)
+// ============================================================
+
+model SupportTicket {
+  id         String         @id @default(uuid()) @db.Uuid
+  tenantId   String         @map("tenant_id") @db.Uuid
+  subject    String         @db.VarChar(255)
+  category   TicketCategory
+  status     TicketStatus   @default(OPEN)
+  createdBy  String         @map("created_by") @db.Uuid
+  assignedTo String?        @map("assigned_to") @db.Uuid
+  closedAt   DateTime?      @map("closed_at")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  tenant     Tenant         @relation(fields: [tenantId], references: [id])
+  creator    User           @relation("TicketCreatedBy", fields: [createdBy], references: [id])
+  assignee   User?          @relation("TicketAssignedTo", fields: [assignedTo], references: [id])
+  messages   TicketMessage[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([createdBy])
+  @@map("support_tickets")
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketCategory {
+  ACADEMIC
+  ATTENDANCE
+  FEES
+  TECHNICAL
+  GENERAL
+}
+
+model TicketMessage {
+  id            String        @id @default(uuid()) @db.Uuid
+  ticketId      String        @map("ticket_id") @db.Uuid
+  senderId      String        @map("sender_id") @db.Uuid
+  content       String        @db.Text
+  attachmentUrl String?       @map("attachment_url") @db.VarChar(500)
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  ticket        SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender        User          @relation("TicketMessageSender", fields: [senderId], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_messages")
+}
+
+// ============================================================
+// DOCUMENTS (Phase 3)
+// ============================================================
+
+model Document {
+  id            String       @id @default(uuid()) @db.Uuid
+  tenantId      String       @map("tenant_id") @db.Uuid
+  studentId     String?      @map("student_id") @db.Uuid
+  title         String       @db.VarChar(255)
+  documentType  DocumentType @map("document_type")
+  fileUrl       String       @map("file_url") @db.VarChar(500)
+  fileSize      Int          @default(0) @map("file_size")
+  mimeType      String?      @map("mime_type") @db.VarChar(100)
+  version       Int          @default(1)
+  uploadedBy    String       @map("uploaded_by") @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  tenant        Tenant       @relation(fields: [tenantId], references: [id])
+  student       Student?     @relation(fields: [studentId], references: [id])
+  uploader      User         @relation("DocumentUploadedBy", fields: [uploadedBy], references: [id])
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([documentType])
+  @@map("documents")
+}
+
+enum DocumentType {
+  REPORT_CARD
+  ADMIT_CARD
+  TEST_REPORT
+  CERTIFICATE
+  NOTICE_PDF
+  OTHER
 }

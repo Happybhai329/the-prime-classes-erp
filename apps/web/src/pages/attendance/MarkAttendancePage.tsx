@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Save, ArrowLeft } from 'lucide-react';
-import { useForm, Controller } from 'react-form-hook'; // Standardized with react-hook-form in this app
 import { useCreateAttendanceSession } from '@/hooks/useAttendance';
 import { useBatches } from '@/hooks/useBatches';
-import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { AttendanceSessionType, AttendanceStatus } from '@prime/shared-types';
 
@@ -21,7 +19,7 @@ export const MarkAttendancePage: React.FC = () => {
   const { data: batchesData, isLoading: isLoadingBatches } = useBatches({ limit: 100 });
   const batches = batchesData?.data || [];
   
-  const selectedBatch = batches.find(b => b.id === selectedBatchId);
+  const selectedBatch = batches.find((b: any) => b.id === selectedBatchId);
   const createMutation = useCreateAttendanceSession();
 
   // Reset records when batch changes
