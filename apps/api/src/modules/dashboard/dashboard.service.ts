@@ -62,7 +62,7 @@ export class DashboardService {
       this.prisma.feePayment.findMany({
         where: {
           paymentDate: { gte: monthStart },
-          invoice: { tenantId },
+          tenantId,
         },
         select: { amountPaid: true },
       }),
@@ -98,7 +98,7 @@ export class DashboardService {
       // Recent payments
       this.prisma.feePayment.findMany({
         where: {
-          invoice: { tenantId },
+          tenantId,
         },
         orderBy: { createdAt: 'desc' },
         take: 10,
@@ -107,6 +107,13 @@ export class DashboardService {
             select: {
               invoiceNumber: true,
               amount: true,
+              student: {
+                select: { firstName: true, lastName: true, rollNumber: true },
+              },
+            },
+          },
+          studentFee: {
+            select: {
               student: {
                 select: { firstName: true, lastName: true, rollNumber: true },
               },
@@ -153,17 +160,20 @@ export class DashboardService {
         batchCode: t.batch.code,
       })),
       recentAdmissions,
-      recentPayments: recentPayments.map((p) => ({
-        id: p.id,
-        amountPaid: Number(p.amountPaid),
-        paymentDate: p.paymentDate,
-        paymentMode: p.paymentMode,
-        receiptNumber: p.receiptNumber,
-        invoiceNumber: p.invoice.invoiceNumber,
-        invoiceAmount: Number(p.invoice.amount),
-        studentName: `${p.invoice.student.firstName} ${p.invoice.student.lastName}`,
-        rollNumber: p.invoice.student.rollNumber,
-      })),
+      recentPayments: recentPayments.map((p) => {
+        const student = p.invoice?.student || p.studentFee?.student;
+        return {
+          id: p.id,
+          amountPaid: Number(p.amountPaid),
+          paymentDate: p.paymentDate,
+          paymentMode: p.paymentMode,
+          receiptNumber: p.receiptNumber,
+          invoiceNumber: p.invoice?.invoiceNumber || p.receiptNumber,
+          invoiceAmount: p.invoice ? Number(p.invoice.amount) : Number(p.amountPaid),
+          studentName: student ? `${student.firstName} ${student.lastName}` : 'Unknown Student',
+          rollNumber: student?.rollNumber || '',
+        };
+      }),
     };
   }
 
@@ -251,7 +261,7 @@ export class DashboardService {
         this.prisma.feePayment.aggregate({
           where: {
             paymentDate: { gte: monthStart, lte: monthEnd },
-            invoice: { tenantId },
+            tenantId,
           },
           _sum: { amountPaid: true },
         }),

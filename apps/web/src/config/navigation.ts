@@ -90,10 +90,46 @@ export const sidebarNavigation: NavSection[] = [
     title: 'Finance',
     items: [
       {
-        label: 'Fees',
+        label: 'Fee Dashboard',
         path: '/fees',
         icon: IndianRupee,
         permissions: [Permission.FEE_VIEW_ALL],
+      },
+      {
+        label: 'Fee Plans',
+        path: '/fees/plans',
+        icon: Layers,
+        permissions: [Permission.FEE_STRUCTURE_MANAGE],
+      },
+      {
+        label: 'Student Fees',
+        path: '/fees/student-fees',
+        icon: Users,
+        permissions: [Permission.FEE_VIEW_ALL],
+      },
+      {
+        label: 'Payments',
+        path: '/fees/payments',
+        icon: IndianRupee,
+        permissions: [Permission.FEE_COLLECT],
+      },
+      {
+        label: 'Receipts',
+        path: '/fees/receipts',
+        icon: FileText,
+        permissions: [Permission.FEE_RECEIPT_VIEW],
+      },
+      {
+        label: 'Refunds & Discounts',
+        path: '/fees/refunds',
+        icon: ShieldCheck,
+        permissions: [Permission.FEE_REFUND_MANAGE],
+      },
+      {
+        label: 'Fee Reports',
+        path: '/fees/reports',
+        icon: BarChart3,
+        permissions: [Permission.FEE_REPORT],
       },
     ],
   },

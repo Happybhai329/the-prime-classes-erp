@@ -102,6 +102,7 @@ export enum FeeType {
   ANNUAL = 'ANNUAL',
   EXAM = 'EXAM',
   MATERIAL = 'MATERIAL',
+  REGISTRATION = 'REGISTRATION',
 }
 
 export enum InvoiceStatus {
@@ -118,6 +119,44 @@ export enum PaymentMode {
   BANK_TRANSFER = 'BANK_TRANSFER',
   CHEQUE = 'CHEQUE',
   UPI = 'UPI',
+  CARD = 'CARD',
+}
+
+// ---- Fees Phase 4 ----
+
+export enum InstallmentType {
+  ONE_TIME = 'ONE_TIME',
+  MONTHLY = 'MONTHLY',
+  QUARTERLY = 'QUARTERLY',
+  CUSTOM = 'CUSTOM',
+}
+
+export enum StudentFeeStatus {
+  PENDING = 'PENDING',
+  PARTIAL = 'PARTIAL',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  WAIVED = 'WAIVED',
+}
+
+export enum DiscountType {
+  MERIT_SCHOLARSHIP = 'MERIT_SCHOLARSHIP',
+  STAFF_DISCOUNT = 'STAFF_DISCOUNT',
+  SIBLING_DISCOUNT = 'SIBLING_DISCOUNT',
+  PROMOTIONAL_DISCOUNT = 'PROMOTIONAL_DISCOUNT',
+  CUSTOM = 'CUSTOM',
+}
+
+export enum DiscountMode {
+  PERCENTAGE = 'PERCENTAGE',
+  FIXED = 'FIXED',
+}
+
+export enum RefundStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  PROCESSED = 'PROCESSED',
 }
 
 // ---- Study Materials ----
@@ -144,6 +183,10 @@ export enum NotificationType {
   TEST_SCHEDULED = 'TEST_SCHEDULED',
   RESULT_PUBLISHED = 'RESULT_PUBLISHED',
   NOTICE_PUBLISHED = 'NOTICE_PUBLISHED',
+  // Phase 4
+  FEE_PAYMENT_RECEIVED = 'FEE_PAYMENT_RECEIVED',
+  FEE_OVERDUE_REMINDER = 'FEE_OVERDUE_REMINDER',
+  REFUND_PROCESSED = 'REFUND_PROCESSED',
 }
 
 export enum NotificationDeliveryStatus {

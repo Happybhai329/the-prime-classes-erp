@@ -1,8 +1,9 @@
 import React from 'react';
 import { useParentDashboard } from '@/hooks/useDashboard';
+import { useParentLedgerReport } from '@/hooks/useFees';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Calendar, Award, BookOpen, AlertCircle } from 'lucide-react';
+import { Calendar, Award, BookOpen, AlertCircle, IndianRupee } from 'lucide-react';
 
 export const ParentDashboardPage: React.FC = () => {
   const { data: dashboardData, isLoading } = useParentDashboard();
@@ -64,6 +65,9 @@ export const ParentDashboardPage: React.FC = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Parent Fee Integration */}
+                <ParentFeeSection studentId={child.studentId} />
               </div>
             </div>
           ))}
@@ -114,6 +118,60 @@ export const ParentDashboardPage: React.FC = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+const ParentFeeSection: React.FC<{ studentId: string }> = ({ studentId }) => {
+  const { data: ledger, isLoading } = useParentLedgerReport();
+
+  if (isLoading || !ledger) return null;
+
+  const childLedger = ledger.find((l: any) => l.studentId === studentId);
+
+  if (!childLedger) return null;
+
+  return (
+    <div className="mt-6 border-t pt-6">
+      <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <IndianRupee className="h-5 w-5 text-indigo-600" /> Fees & Invoices
+      </h3>
+
+      <div className="space-y-4">
+        {childLedger.feePlans.map((plan: any) => (
+          <div key={plan.feePlanName} className="border border-gray-100 rounded-xl p-4 bg-gray-50/50">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <p className="font-semibold text-sm text-gray-900">{plan.feePlanName}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Total: ₹{plan.totalAmount.toLocaleString()} • Paid: ₹{plan.paidAmount.toLocaleString()}</p>
+              </div>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                plan.status === 'PAID' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+              }`}>
+                {plan.status}
+              </span>
+            </div>
+
+            {/* Installments */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {plan.installments.map((inst: any) => (
+                <div key={inst.id} className="bg-white border rounded-lg p-2.5 flex justify-between items-center text-xs">
+                  <div>
+                    <p className="font-semibold text-gray-800">{inst.label}</p>
+                    <p className="text-gray-400 mt-0.5">Due: {inst.dueDate}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-gray-900">₹{inst.amount.toLocaleString()}</p>
+                    <span className={`text-[9px] font-bold ${
+                      inst.status === 'PAID' ? 'text-emerald-600' : 'text-amber-500'
+                    }`}>{inst.status}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
