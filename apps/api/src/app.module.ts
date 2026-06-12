@@ -23,6 +23,13 @@ import { AuditModule } from './modules/audit/audit.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HealthModule } from './modules/health/health.module';
 
+// Phase 3 Modules
+import { StorageModule } from './modules/storage/storage.module';
+import { NoticesModule } from './modules/notices/notices.module';
+import { AnnouncementsModule } from './modules/announcements/announcements.module';
+import { DocumentsModule } from './modules/documents/documents.module';
+import { CommunicationModule } from './modules/communication/communication.module';
+
 @Module({
   imports: [
     // Configuration
@@ -71,6 +78,13 @@ import { HealthModule } from './modules/health/health.module';
     AuditModule,
     DashboardModule,
     HealthModule,
+    
+    // Phase 3 Feature modules
+    StorageModule,
+    NoticesModule,
+    AnnouncementsModule,
+    DocumentsModule,
+    CommunicationModule,
   ],
   providers: [
     {

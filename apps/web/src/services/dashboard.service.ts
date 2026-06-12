@@ -20,4 +20,14 @@ export const dashboardService = {
     const res = await api.get('/dashboard/admin/charts/fee-trends');
     return res.data.data;
   },
+
+  getParentDashboard: async () => {
+    const res = await api.get('/dashboard/parent');
+    return res.data.data;
+  },
+
+  getChildAnalytics: async (studentId: string) => {
+    const res = await api.get(`/dashboard/parent/child/${studentId}/analytics`);
+    return res.data.data;
+  },
 };

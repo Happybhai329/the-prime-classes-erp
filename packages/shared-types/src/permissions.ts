@@ -59,6 +59,12 @@ export enum Permission {
   FEE_VIEW_ALL = 'fee:view:all',
   FEE_VIEW_OWN = 'fee:view:own',
   FEE_REPORT = 'fee:report',
+  // Fees (Phase 4)
+  FEE_DISCOUNT_MANAGE = 'fee:discount:manage',
+  FEE_REFUND_MANAGE = 'fee:refund:manage',
+  FEE_REFUND_APPROVE = 'fee:refund:approve',
+  FEE_RECEIPT_VIEW = 'fee:receipt:view',
+  FEE_DASHBOARD = 'fee:dashboard',
 
   // Materials
   MATERIAL_UPLOAD = 'material:upload',
@@ -77,6 +83,28 @@ export enum Permission {
 
   // Audit
   AUDIT_VIEW = 'audit:view',
+
+  // Notices (Phase 3)
+  NOTICE_CREATE = 'notice:create',
+  NOTICE_EDIT = 'notice:edit',
+  NOTICE_DELETE = 'notice:delete',
+  NOTICE_VIEW = 'notice:view',
+
+  // Announcements (Phase 3)
+  ANNOUNCEMENT_CREATE = 'announcement:create',
+  ANNOUNCEMENT_VIEW = 'announcement:view',
+
+  // Communication / Tickets (Phase 3)
+  TICKET_CREATE = 'ticket:create',
+  TICKET_VIEW_ALL = 'ticket:view:all',
+  TICKET_VIEW_OWN = 'ticket:view:own',
+  TICKET_RESPOND = 'ticket:respond',
+
+  // Documents (Phase 3)
+  DOCUMENT_UPLOAD = 'document:upload',
+  DOCUMENT_VIEW_ALL = 'document:view:all',
+  DOCUMENT_VIEW_OWN = 'document:view:own',
+  DOCUMENT_DELETE = 'document:delete',
 }
 
 import { UserRole } from './enums';
@@ -119,6 +147,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.FEE_COLLECT,
     Permission.FEE_VIEW_ALL,
     Permission.FEE_REPORT,
+    Permission.FEE_DISCOUNT_MANAGE,
+    Permission.FEE_REFUND_MANAGE,
+    Permission.FEE_REFUND_APPROVE,
+    Permission.FEE_RECEIPT_VIEW,
+    Permission.FEE_DASHBOARD,
     Permission.MATERIAL_UPLOAD,
     Permission.MATERIAL_DOWNLOAD,
     Permission.MATERIAL_DELETE,
@@ -128,6 +161,21 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.REPORT_ALL,
     Permission.REPORT_BATCH,
     Permission.AUDIT_VIEW,
+    // Phase 3
+    Permission.NOTICE_CREATE,
+    Permission.NOTICE_EDIT,
+    Permission.NOTICE_DELETE,
+    Permission.NOTICE_VIEW,
+    Permission.ANNOUNCEMENT_CREATE,
+    Permission.ANNOUNCEMENT_VIEW,
+    Permission.TICKET_CREATE,
+    Permission.TICKET_VIEW_ALL,
+    Permission.TICKET_VIEW_OWN,
+    Permission.TICKET_RESPOND,
+    Permission.DOCUMENT_UPLOAD,
+    Permission.DOCUMENT_VIEW_ALL,
+    Permission.DOCUMENT_VIEW_OWN,
+    Permission.DOCUMENT_DELETE,
   ],
 
   [UserRole.FACULTY]: [
@@ -147,6 +195,15 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.NOTIFICATION_SEND,
     Permission.NOTIFICATION_VIEW_OWN,
     Permission.REPORT_BATCH,
+    // Phase 3
+    Permission.NOTICE_CREATE,
+    Permission.NOTICE_VIEW,
+    Permission.ANNOUNCEMENT_VIEW,
+    Permission.TICKET_VIEW_ALL,
+    Permission.TICKET_VIEW_OWN,
+    Permission.TICKET_RESPOND,
+    Permission.DOCUMENT_UPLOAD,
+    Permission.DOCUMENT_VIEW_ALL,
   ],
 
   [UserRole.STUDENT]: [
@@ -165,8 +222,16 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.ATTENDANCE_READ_OWN,
     Permission.TEST_VIEW_OWN,
     Permission.FEE_VIEW_OWN,
+    Permission.FEE_RECEIPT_VIEW,
+    Permission.FEE_DASHBOARD,
     Permission.NOTIFICATION_VIEW_OWN,
     Permission.REPORT_OWN,
+    // Phase 3
+    Permission.NOTICE_VIEW,
+    Permission.ANNOUNCEMENT_VIEW,
+    Permission.TICKET_CREATE,
+    Permission.TICKET_VIEW_OWN,
+    Permission.DOCUMENT_VIEW_OWN,
   ],
 
   [UserRole.ACCOUNTANT]: [
@@ -177,6 +242,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.FEE_COLLECT,
     Permission.FEE_VIEW_ALL,
     Permission.FEE_REPORT,
+    Permission.FEE_DISCOUNT_MANAGE,
+    Permission.FEE_REFUND_MANAGE,
+    Permission.FEE_REFUND_APPROVE,
+    Permission.FEE_RECEIPT_VIEW,
+    Permission.FEE_DASHBOARD,
     Permission.NOTIFICATION_VIEW_OWN,
     Permission.REPORT_ALL,
   ],

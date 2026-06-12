@@ -38,9 +38,19 @@ model Tenant {
   tests              Test[]
   feeStructures      FeeStructure[]
   feeInvoices        FeeInvoice[]
+  feePayments        FeePayment[]
   studyMaterials     StudyMaterial[]
   notifications      Notification[]
   auditLogs          AuditLog[]
+  // Phase 3
+  notices            Notice[]
+  supportTickets     SupportTicket[]
+  documents          Document[]
+  // Phase 4
+  studentFees        StudentFee[]
+  feeDiscounts       FeeDiscount[]
+  feeRefunds         FeeRefund[]
+  feeReceipts        FeeReceipt[]
 
   @@map("tenants")
 }
@@ -87,6 +97,13 @@ model User {
   notificationsCreated Notification[] @relation("NotificationCreatedBy")
   notificationLogs NotificationLog[]
   auditLogs        AuditLog[]
+  // Phase 3
+  noticesCreated   Notice[]           @relation("NoticeCreatedBy")
+  noticeReadLogs   NoticeReadLog[]    @relation("NoticeReadBy")
+  ticketsCreated   SupportTicket[]    @relation("TicketCreatedBy")
+  ticketsAssigned  SupportTicket[]    @relation("TicketAssignedTo")
+  ticketMessages   TicketMessage[]    @relation("TicketMessageSender")
+  documentsUploaded Document[]        @relation("DocumentUploadedBy")
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -139,6 +156,10 @@ model Student {
   testMarks       TestMarks[]
   testRankings    TestRanking[]
   feeInvoices     FeeInvoice[]
+  // Phase 4
+  studentFees     StudentFee[]
+  // Phase 3
+  uploadedDocuments Document[]
 
   @@unique([tenantId, rollNumber])
   @@index([tenantId])
@@ -499,27 +520,40 @@ model TestRanking {
 }
 
 // ============================================================
-// FEES
+// FEES (Phase 4 — Complete Fee Management)
 // ============================================================
 
 model FeeStructure {
-  id        String   @id @default(uuid()) @db.Uuid
-  tenantId  String   @map("tenant_id") @db.Uuid
-  batchId   String?  @map("batch_id") @db.Uuid
-  name      String   @db.VarChar(255)
-  feeType   FeeType  @map("fee_type")
-  amount    Decimal  @db.Decimal(10, 2)
-  dueDay    Int?     @map("due_day") // Day of month (1-28)
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id              String          @id @default(uuid()) @db.Uuid
+  tenantId        String          @map("tenant_id") @db.Uuid
+  batchId         String?         @map("batch_id") @db.Uuid
+  name            String          @db.VarChar(255)
+  feeType         FeeType         @map("fee_type")
+  amount          Decimal         @db.Decimal(10, 2)
+  dueDay          Int?            @map("due_day") // Day of month (1-28)
+  isActive        Boolean         @default(true) @map("is_active")
+  // Phase 4 extensions
+  course          String?         @db.VarChar(255)
+  academicYear    String          @default("2026-27") @map("academic_year") @db.VarChar(20)
+  description     String?         @db.Text
+  registrationFee Decimal         @default(0) @map("registration_fee") @db.Decimal(10, 2)
+  admissionFee    Decimal         @default(0) @map("admission_fee") @db.Decimal(10, 2)
+  monthlyFee      Decimal         @default(0) @map("monthly_fee") @db.Decimal(10, 2)
+  materialFee     Decimal         @default(0) @map("material_fee") @db.Decimal(10, 2)
+  examFee         Decimal         @default(0) @map("exam_fee") @db.Decimal(10, 2)
+  totalFee        Decimal         @default(0) @map("total_fee") @db.Decimal(10, 2)
+  installmentType InstallmentType @default(ONE_TIME) @map("installment_type")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
 
   // Relations
-  tenant    Tenant   @relation(fields: [tenantId], references: [id])
-  batch     Batch?   @relation(fields: [batchId], references: [id])
-  invoices  FeeInvoice[]
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  batch       Batch?       @relation(fields: [batchId], references: [id])
+  invoices    FeeInvoice[]
+  studentFees StudentFee[]
 
   @@index([tenantId])
+  @@index([academicYear])
   @@map("fee_structures")
 }
 
@@ -530,6 +564,14 @@ enum FeeType {
   ANNUAL
   EXAM
   MATERIAL
+  REGISTRATION
+}
+
+enum InstallmentType {
+  ONE_TIME
+  MONTHLY
+  QUARTERLY
+  CUSTOM
 }
 
 model FeeInvoice {
@@ -568,22 +610,39 @@ enum InvoiceStatus {
 }
 
 model FeePayment {
-  id               String      @id @default(uuid()) @db.Uuid
-  invoiceId        String      @map("invoice_id") @db.Uuid
-  amountPaid       Decimal     @map("amount_paid") @db.Decimal(10, 2)
-  paymentDate      DateTime    @default(now()) @map("payment_date") @db.Date
-  paymentMode      PaymentMode @map("payment_mode")
-  razorpayOrderId  String?     @map("razorpay_order_id") @db.VarChar(100)
-  razorpayPaymentId String?    @map("razorpay_payment_id") @db.VarChar(100)
-  receiptNumber    String      @unique @map("receipt_number") @db.VarChar(50)
-  collectedBy      String      @map("collected_by") @db.Uuid
-  createdAt        DateTime    @default(now()) @map("created_at")
+  id                String       @id @default(uuid()) @db.Uuid
+  tenantId          String       @map("tenant_id") @db.Uuid
+  invoiceId         String?      @map("invoice_id") @db.Uuid
+  studentFeeId      String?      @map("student_fee_id") @db.Uuid
+  installmentId     String?      @map("installment_id") @db.Uuid
+  amountPaid        Decimal      @map("amount_paid") @db.Decimal(10, 2)
+  paymentDate       DateTime     @default(now()) @map("payment_date") @db.Date
+  paymentMode       PaymentMode  @map("payment_mode")
+  transactionId     String?      @map("transaction_id") @db.VarChar(100)
+  razorpayOrderId   String?      @map("razorpay_order_id") @db.VarChar(100)
+  razorpayPaymentId String?      @map("razorpay_payment_id") @db.VarChar(100)
+  receiptNumber     String       @unique @map("receipt_number") @db.VarChar(50)
+  collectedBy       String       @map("collected_by") @db.Uuid
+  notes             String?      @db.Text
+  isAdvance         Boolean      @default(false) @map("is_advance")
+  adjustedAmount    Decimal?     @map("adjusted_amount") @db.Decimal(10, 2)
+  createdAt         DateTime     @default(now()) @map("created_at")
+  deletedAt         DateTime?    @map("deleted_at")
 
   // Relations
-  invoice          FeeInvoice  @relation(fields: [invoiceId], references: [id])
-  collector        User        @relation("PaymentCollectedBy", fields: [collectedBy], references: [id])
+  tenant            Tenant       @relation(fields: [tenantId], references: [id])
+  invoice           FeeInvoice?  @relation(fields: [invoiceId], references: [id])
+  studentFee        StudentFee?  @relation(fields: [studentFeeId], references: [id])
+  installment       FeeInstallment? @relation(fields: [installmentId], references: [id])
+  collector         User         @relation("PaymentCollectedBy", fields: [collectedBy], references: [id])
+  receipt           FeeReceipt?
 
+  @@index([tenantId])
   @@index([invoiceId])
+  @@index([studentFeeId])
+  @@index([installmentId])
+  @@index([paymentDate])
+  @@index([deletedAt])
   @@map("fee_payments")
 }
 
@@ -593,6 +652,179 @@ enum PaymentMode {
   BANK_TRANSFER
   CHEQUE
   UPI
+  CARD
+}
+
+// ============================================================
+// STUDENT FEE ASSIGNMENT (Phase 4)
+// ============================================================
+
+model StudentFee {
+  id              String          @id @default(uuid()) @db.Uuid
+  tenantId        String          @map("tenant_id") @db.Uuid
+  studentId       String          @map("student_id") @db.Uuid
+  feeStructureId  String          @map("fee_structure_id") @db.Uuid
+  academicYear    String          @map("academic_year") @db.VarChar(20)
+  totalAmount     Decimal         @map("total_amount") @db.Decimal(10, 2)
+  discountAmount  Decimal         @default(0) @map("discount_amount") @db.Decimal(10, 2)
+  netAmount       Decimal         @map("net_amount") @db.Decimal(10, 2)
+  paidAmount      Decimal         @default(0) @map("paid_amount") @db.Decimal(10, 2)
+  status          StudentFeeStatus @default(PENDING)
+  assignedAt      DateTime        @default(now()) @map("assigned_at")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  deletedAt       DateTime?       @map("deleted_at")
+
+  // Relations
+  tenant          Tenant          @relation(fields: [tenantId], references: [id])
+  student         Student         @relation(fields: [studentId], references: [id])
+  feeStructure    FeeStructure    @relation(fields: [feeStructureId], references: [id])
+  installments    FeeInstallment[]
+  payments        FeePayment[]
+  discounts       FeeDiscount[]
+  refunds         FeeRefund[]
+
+  @@unique([studentId, feeStructureId, academicYear])
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([status])
+  @@index([deletedAt])
+  @@map("student_fees")
+}
+
+enum StudentFeeStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+// ============================================================
+// FEE INSTALLMENTS (Phase 4)
+// ============================================================
+
+model FeeInstallment {
+  id            String        @id @default(uuid()) @db.Uuid
+  studentFeeId  String        @map("student_fee_id") @db.Uuid
+  installmentNo Int           @map("installment_no")
+  label         String        @db.VarChar(100) // "Jan 2026", "Q1 2026", etc.
+  amount        Decimal       @db.Decimal(10, 2)
+  dueDate       DateTime      @map("due_date") @db.Date
+  paidAmount    Decimal       @default(0) @map("paid_amount") @db.Decimal(10, 2)
+  status        InvoiceStatus @default(PENDING)
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  studentFee    StudentFee    @relation(fields: [studentFeeId], references: [id], onDelete: Cascade)
+  payments      FeePayment[]
+
+  @@index([studentFeeId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("fee_installments")
+}
+
+// ============================================================
+// FEE DISCOUNTS / SCHOLARSHIPS (Phase 4)
+// ============================================================
+
+model FeeDiscount {
+  id            String       @id @default(uuid()) @db.Uuid
+  tenantId      String       @map("tenant_id") @db.Uuid
+  studentFeeId  String       @map("student_fee_id") @db.Uuid
+  discountType  DiscountType @map("discount_type")
+  discountMode  DiscountMode @map("discount_mode")
+  value         Decimal      @db.Decimal(10, 2) // percentage or fixed amount
+  amount        Decimal      @db.Decimal(10, 2) // computed discount amount
+  reason        String?      @db.Text
+  approvedBy    String?      @map("approved_by") @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  tenant        Tenant       @relation(fields: [tenantId], references: [id])
+  studentFee    StudentFee   @relation(fields: [studentFeeId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([studentFeeId])
+  @@map("fee_discounts")
+}
+
+enum DiscountType {
+  MERIT_SCHOLARSHIP
+  STAFF_DISCOUNT
+  SIBLING_DISCOUNT
+  PROMOTIONAL_DISCOUNT
+  CUSTOM
+}
+
+enum DiscountMode {
+  PERCENTAGE
+  FIXED
+}
+
+// ============================================================
+// FEE REFUNDS (Phase 4)
+// ============================================================
+
+model FeeRefund {
+  id            String       @id @default(uuid()) @db.Uuid
+  tenantId      String       @map("tenant_id") @db.Uuid
+  studentFeeId  String       @map("student_fee_id") @db.Uuid
+  paymentId     String?      @map("payment_id") @db.Uuid
+  amount        Decimal      @db.Decimal(10, 2)
+  reason        String       @db.Text
+  status        RefundStatus @default(PENDING)
+  requestedBy   String       @map("requested_by") @db.Uuid
+  approvedBy    String?      @map("approved_by") @db.Uuid
+  processedAt   DateTime?    @map("processed_at")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  tenant        Tenant       @relation(fields: [tenantId], references: [id])
+  studentFee    StudentFee   @relation(fields: [studentFeeId], references: [id])
+
+  @@index([tenantId])
+  @@index([studentFeeId])
+  @@index([status])
+  @@map("fee_refunds")
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PROCESSED
+}
+
+// ============================================================
+// FEE RECEIPTS (Phase 4)
+// ============================================================
+
+model FeeReceipt {
+  id             String      @id @default(uuid()) @db.Uuid
+  tenantId       String      @map("tenant_id") @db.Uuid
+  paymentId      String      @unique @map("payment_id") @db.Uuid
+  receiptNumber  String      @unique @map("receipt_number") @db.VarChar(50)
+  studentName    String      @map("student_name") @db.VarChar(200)
+  studentId      String      @map("student_id") @db.Uuid
+  amount         Decimal     @db.Decimal(10, 2)
+  paymentMode    PaymentMode @map("payment_mode")
+  paymentDate    DateTime    @map("payment_date") @db.Date
+  feeDescription String      @map("fee_description") @db.VarChar(500)
+  qrData         String      @map("qr_data") @db.VarChar(500)
+  metadata       Json        @default("{}") // institute branding, etc.
+  generatedAt    DateTime    @default(now()) @map("generated_at")
+
+  // Relations
+  tenant         Tenant      @relation(fields: [tenantId], references: [id])
+  payment        FeePayment  @relation(fields: [paymentId], references: [id])
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@map("fee_receipts")
 }
 
 // ============================================================
@@ -649,12 +881,12 @@ model Notification {
   targetRoles UserRole[]         @map("target_roles")
   targetIds   String[]           @map("target_ids") @db.Uuid
   data        Json               @default("{}")
-  createdBy   String             @map("created_by") @db.Uuid
+  createdBy   String?            @map("created_by") @db.Uuid
   sentAt      DateTime           @default(now()) @map("sent_at")
 
   // Relations
   tenant      Tenant             @relation(fields: [tenantId], references: [id])
-  creator     User               @relation("NotificationCreatedBy", fields: [createdBy], references: [id])
+  creator     User?              @relation("NotificationCreatedBy", fields: [createdBy], references: [id])
   logs        NotificationLog[]
 
   @@index([tenantId])
@@ -668,6 +900,15 @@ enum NotificationType {
   FEE_DUE
   ANNOUNCEMENT
   EXAM_ALERT
+  // Phase 3
+  LOW_ATTENDANCE_ALERT
+  TEST_SCHEDULED
+  RESULT_PUBLISHED
+  NOTICE_PUBLISHED
+  // Phase 4
+  FEE_PAYMENT_RECEIVED
+  FEE_OVERDUE_REMINDER
+  REFUND_PROCESSED
 }
 
 model NotificationLog {
@@ -723,4 +964,160 @@ model AuditLog {
   @@index([resource])
   @@index([createdAt])
   @@map("audit_logs")
+}
+
+// ============================================================
+// NOTICES (Phase 3)
+// ============================================================
+
+model Notice {
+  id              String               @id @default(uuid()) @db.Uuid
+  tenantId        String               @map("tenant_id") @db.Uuid
+  title           String               @db.VarChar(255)
+  description     String               @db.Text
+  priority        NoticePriority       @default(NORMAL)
+  targetAudience  NoticeTargetAudience @map("target_audience")
+  batchIds        String[]             @map("batch_ids") @db.Uuid
+  publishDate     DateTime             @map("publish_date") @db.Date
+  expiryDate      DateTime?            @map("expiry_date") @db.Date
+  isPublished     Boolean              @default(false) @map("is_published")
+  createdBy       String               @map("created_by") @db.Uuid
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  // Relations
+  tenant          Tenant               @relation(fields: [tenantId], references: [id])
+  creator         User                 @relation("NoticeCreatedBy", fields: [createdBy], references: [id])
+  readLogs        NoticeReadLog[]
+
+  @@index([tenantId])
+  @@index([publishDate])
+  @@index([isPublished])
+  @@map("notices")
+}
+
+enum NoticePriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NoticeTargetAudience {
+  ALL_STUDENTS
+  SPECIFIC_BATCH
+  SPECIFIC_PARENT_GROUP
+  FACULTY
+  ALL
+}
+
+model NoticeReadLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  noticeId  String   @map("notice_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  readAt    DateTime @default(now()) @map("read_at")
+
+  // Relations
+  notice    Notice   @relation(fields: [noticeId], references: [id], onDelete: Cascade)
+  user      User     @relation("NoticeReadBy", fields: [userId], references: [id])
+
+  @@unique([noticeId, userId])
+  @@map("notice_read_logs")
+}
+
+// ============================================================
+// SUPPORT TICKETS (Phase 3)
+// ============================================================
+
+model SupportTicket {
+  id         String         @id @default(uuid()) @db.Uuid
+  tenantId   String         @map("tenant_id") @db.Uuid
+  subject    String         @db.VarChar(255)
+  category   TicketCategory
+  status     TicketStatus   @default(OPEN)
+  createdBy  String         @map("created_by") @db.Uuid
+  assignedTo String?        @map("assigned_to") @db.Uuid
+  closedAt   DateTime?      @map("closed_at")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  tenant     Tenant         @relation(fields: [tenantId], references: [id])
+  creator    User           @relation("TicketCreatedBy", fields: [createdBy], references: [id])
+  assignee   User?          @relation("TicketAssignedTo", fields: [assignedTo], references: [id])
+  messages   TicketMessage[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([createdBy])
+  @@map("support_tickets")
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketCategory {
+  ACADEMIC
+  ATTENDANCE
+  FEES
+  TECHNICAL
+  GENERAL
+}
+
+model TicketMessage {
+  id            String        @id @default(uuid()) @db.Uuid
+  ticketId      String        @map("ticket_id") @db.Uuid
+  senderId      String        @map("sender_id") @db.Uuid
+  content       String        @db.Text
+  attachmentUrl String?       @map("attachment_url") @db.VarChar(500)
+  createdAt     DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  ticket        SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  sender        User          @relation("TicketMessageSender", fields: [senderId], references: [id])
+
+  @@index([ticketId])
+  @@map("ticket_messages")
+}
+
+// ============================================================
+// DOCUMENTS (Phase 3)
+// ============================================================
+
+model Document {
+  id            String       @id @default(uuid()) @db.Uuid
+  tenantId      String       @map("tenant_id") @db.Uuid
+  studentId     String?      @map("student_id") @db.Uuid
+  title         String       @db.VarChar(255)
+  documentType  DocumentType @map("document_type")
+  fileUrl       String       @map("file_url") @db.VarChar(500)
+  fileSize      Int          @default(0) @map("file_size")
+  mimeType      String?      @map("mime_type") @db.VarChar(100)
+  version       Int          @default(1)
+  uploadedBy    String       @map("uploaded_by") @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  tenant        Tenant       @relation(fields: [tenantId], references: [id])
+  student       Student?     @relation(fields: [studentId], references: [id])
+  uploader      User         @relation("DocumentUploadedBy", fields: [uploadedBy], references: [id])
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@index([documentType])
+  @@map("documents")
+}
+
+enum DocumentType {
+  REPORT_CARD
+  ADMIT_CARD
+  TEST_REPORT
+  CERTIFICATE
+  NOTICE_PDF
+  OTHER
 }

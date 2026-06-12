@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Save, ArrowLeft } from 'lucide-react';
 import { useTest, useEnterMarks } from '@/hooks/useTests';
 import { useBatches } from '@/hooks/useBatches'; // Needed to fetch students in the batch
-import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export const EnterMarksPage: React.FC = () => {
@@ -26,7 +25,7 @@ export const EnterMarksPage: React.FC = () => {
         
         // Initialize with existing marks or default values
         batch.students?.forEach((s: any) => {
-          const existingMark = test.marks.find((m: any) => m.studentId === s.studentId);
+          const existingMark = (test as any).marks?.find((m: any) => m.studentId === s.studentId);
           initialState[s.studentId] = {
             marksObtained: existingMark ? existingMark.marksObtained.toString() : '',
             isAbsent: existingMark ? existingMark.isAbsent : false,
@@ -77,6 +76,7 @@ export const EnterMarksPage: React.FC = () => {
       .map(([studentId, state]) => ({
         studentId,
         marksObtained: state.isAbsent ? 0 : Number(state.marksObtained),
+        subjectMarks: {},
         isAbsent: state.isAbsent,
       }));
 

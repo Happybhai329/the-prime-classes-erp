@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Bell, Check, Trash2, ExternalLink } from 'lucide-react';
+import { Bell, Check } from 'lucide-react';
 import { useNotifications, useUnreadCount, useMarkRead, useMarkAllRead } from '@/hooks/useNotifications';
 
 export const NotificationPopover: React.FC = () => {

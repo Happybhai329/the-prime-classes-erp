@@ -9,6 +9,11 @@ import {
   IndianRupee,
   BarChart3,
   Settings,
+  Bell,
+  Megaphone,
+  LifeBuoy,
+  FileText,
+  ShieldCheck,
 } from 'lucide-react';
 import { Permission } from '@prime/shared-types';
 
@@ -85,10 +90,46 @@ export const sidebarNavigation: NavSection[] = [
     title: 'Finance',
     items: [
       {
-        label: 'Fees',
+        label: 'Fee Dashboard',
         path: '/fees',
         icon: IndianRupee,
         permissions: [Permission.FEE_VIEW_ALL],
+      },
+      {
+        label: 'Fee Plans',
+        path: '/fees/plans',
+        icon: Layers,
+        permissions: [Permission.FEE_STRUCTURE_MANAGE],
+      },
+      {
+        label: 'Student Fees',
+        path: '/fees/student-fees',
+        icon: Users,
+        permissions: [Permission.FEE_VIEW_ALL],
+      },
+      {
+        label: 'Payments',
+        path: '/fees/payments',
+        icon: IndianRupee,
+        permissions: [Permission.FEE_COLLECT],
+      },
+      {
+        label: 'Receipts',
+        path: '/fees/receipts',
+        icon: FileText,
+        permissions: [Permission.FEE_RECEIPT_VIEW],
+      },
+      {
+        label: 'Refunds & Discounts',
+        path: '/fees/refunds',
+        icon: ShieldCheck,
+        permissions: [Permission.FEE_REFUND_MANAGE],
+      },
+      {
+        label: 'Fee Reports',
+        path: '/fees/reports',
+        icon: BarChart3,
+        permissions: [Permission.FEE_REPORT],
       },
     ],
   },
@@ -110,7 +151,43 @@ export const sidebarNavigation: NavSection[] = [
     ],
   },
   {
+    title: 'Communication',
     items: [
+      {
+        label: 'Notice Board',
+        path: '/notices',
+        icon: Bell,
+        permissions: [Permission.NOTICE_VIEW],
+      },
+      {
+        label: 'Announcements',
+        path: '/announcements',
+        icon: Megaphone,
+        permissions: [Permission.ANNOUNCEMENT_VIEW],
+      },
+      {
+        label: 'Support Tickets',
+        path: '/tickets',
+        icon: LifeBuoy,
+        permissions: [Permission.TICKET_VIEW_OWN, Permission.TICKET_VIEW_ALL],
+      },
+    ],
+  },
+  {
+    title: 'Resources & System',
+    items: [
+      {
+        label: 'Documents',
+        path: '/documents',
+        icon: FileText,
+        permissions: [Permission.DOCUMENT_VIEW_OWN, Permission.DOCUMENT_VIEW_ALL],
+      },
+      {
+        label: 'Audit Logs',
+        path: '/audit',
+        icon: ShieldCheck,
+        permissions: [Permission.AUDIT_VIEW],
+      },
       {
         label: 'Settings',
         path: '/settings',

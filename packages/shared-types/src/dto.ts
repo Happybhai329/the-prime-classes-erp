@@ -15,6 +15,20 @@ import {
   PaymentMode,
   MaterialType,
   NotificationType,
+  // Phase 3
+  NoticePriority,
+  NoticeTargetAudience,
+  AnnouncementCategory,
+  TicketStatus,
+  TicketCategory,
+  DocumentType,
+  // Phase 4
+  FeeType,
+  InstallmentType,
+  StudentFeeStatus,
+  DiscountType,
+  DiscountMode,
+  RefundStatus,
 } from './enums';
 
 // ---- Common ----
@@ -263,7 +277,7 @@ export interface StudentPerformanceTrend {
   batchRank: number;
 }
 
-// ---- Fees ----
+// ---- Fees (Phase 4 — Complete Fee Management) ----
 
 export interface FeeInvoiceSummary {
   id: string;
@@ -276,10 +290,14 @@ export interface FeeInvoiceSummary {
 }
 
 export interface RecordPaymentRequest {
-  invoiceId: string;
+  studentFeeId: string;
+  installmentId?: string;
   amountPaid: number;
   paymentMode: PaymentMode;
-  remarks?: string;
+  paymentDate?: string;
+  transactionId?: string;
+  notes?: string;
+  isAdvance?: boolean;
 }
 
 export interface RazorpayOrderResponse {
@@ -287,6 +305,366 @@ export interface RazorpayOrderResponse {
   amount: number;
   currency: string;
   invoiceId: string;
+}
+
+// ---- Fee Plans ----
+
+export interface FeePlanSummary {
+  id: string;
+  name: string;
+  course: string | null;
+  academicYear: string;
+  feeType: FeeType;
+  totalFee: number;
+  installmentType: InstallmentType;
+  batchName: string | null;
+  isActive: boolean;
+  assignedStudents: number;
+}
+
+export interface FeePlanDetail extends FeePlanSummary {
+  description: string | null;
+  registrationFee: number;
+  admissionFee: number;
+  monthlyFee: number;
+  materialFee: number;
+  examFee: number;
+  amount: number;
+  dueDay: number | null;
+  batchId: string | null;
+  createdAt: string;
+}
+
+export interface CreateFeePlanRequest {
+  name: string;
+  course?: string;
+  academicYear: string;
+  feeType: FeeType;
+  installmentType: InstallmentType;
+  batchId?: string;
+  description?: string;
+  registrationFee?: number;
+  admissionFee?: number;
+  monthlyFee?: number;
+  materialFee?: number;
+  examFee?: number;
+  totalFee: number;
+  amount?: number;
+  dueDay?: number;
+  customInstallments?: CustomInstallmentInput[];
+}
+
+export interface CustomInstallmentInput {
+  label: string;
+  amount: number;
+  dueDate: string;
+}
+
+export interface UpdateFeePlanRequest {
+  name?: string;
+  course?: string;
+  academicYear?: string;
+  feeType?: FeeType;
+  installmentType?: InstallmentType;
+  batchId?: string;
+  description?: string;
+  registrationFee?: number;
+  admissionFee?: number;
+  monthlyFee?: number;
+  materialFee?: number;
+  examFee?: number;
+  totalFee?: number;
+  amount?: number;
+  dueDay?: number;
+  isActive?: boolean;
+}
+
+// ---- Student Fee Assignment ----
+
+export interface StudentFeeAssignment {
+  id: string;
+  studentId: string;
+  studentName: string;
+  rollNumber: string;
+  batchName: string;
+  feePlanName: string;
+  academicYear: string;
+  totalAmount: number;
+  discountAmount: number;
+  netAmount: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  status: StudentFeeStatus;
+  assignedAt: string;
+}
+
+export interface StudentFeeDetail extends StudentFeeAssignment {
+  installments: InstallmentItem[];
+  payments: PaymentDetail[];
+  discounts: DiscountDetail[];
+  refunds: RefundDetail[];
+}
+
+export interface AssignFeePlanRequest {
+  feeStructureId: string;
+  studentId: string;
+  academicYear: string;
+}
+
+export interface BulkAssignFeePlanRequest {
+  feeStructureId: string;
+  academicYear: string;
+  studentIds?: string[];
+  batchId?: string;
+}
+
+// ---- Installments ----
+
+export interface InstallmentItem {
+  id: string;
+  installmentNo: number;
+  label: string;
+  amount: number;
+  dueDate: string;
+  paidAmount: number;
+  status: InvoiceStatus;
+  outstandingAmount: number;
+}
+
+// ---- Payments ----
+
+export interface PaymentDetail {
+  id: string;
+  studentName: string;
+  rollNumber: string;
+  amountPaid: number;
+  paymentDate: string;
+  paymentMode: PaymentMode;
+  transactionId: string | null;
+  receiptNumber: string;
+  collectedByName: string;
+  notes: string | null;
+  isAdvance: boolean;
+  installmentLabel: string | null;
+  feePlanName: string | null;
+  createdAt: string;
+}
+
+export interface PaymentAdjustmentRequest {
+  paymentId: string;
+  adjustedAmount: number;
+  reason: string;
+}
+
+// ---- Receipts ----
+
+export interface ReceiptDetail {
+  id: string;
+  receiptNumber: string;
+  studentName: string;
+  studentId: string;
+  amount: number;
+  paymentMode: PaymentMode;
+  paymentDate: string;
+  feeDescription: string;
+  qrData: string;
+  generatedAt: string;
+  instituteName?: string;
+  instituteLogo?: string;
+}
+
+// ---- Discounts / Scholarships ----
+
+export interface DiscountDetail {
+  id: string;
+  discountType: DiscountType;
+  discountMode: DiscountMode;
+  value: number;
+  amount: number;
+  reason: string | null;
+  approvedByName: string | null;
+  createdAt: string;
+}
+
+export interface ApplyDiscountRequest {
+  studentFeeId: string;
+  discountType: DiscountType;
+  discountMode: DiscountMode;
+  value: number;
+  reason?: string;
+}
+
+// ---- Refunds ----
+
+export interface RefundDetail {
+  id: string;
+  studentFeeId: string;
+  studentName: string;
+  rollNumber: string;
+  amount: number;
+  reason: string;
+  status: RefundStatus;
+  requestedByName: string;
+  approvedByName: string | null;
+  processedAt: string | null;
+  createdAt: string;
+}
+
+export interface CreateRefundRequest {
+  studentFeeId: string;
+  paymentId?: string;
+  amount: number;
+  reason: string;
+}
+
+export interface UpdateRefundStatusRequest {
+  status: RefundStatus;
+}
+
+// ---- Fee Dashboard ----
+
+export interface FeeDashboardData {
+  revenueThisMonth: number;
+  revenueThisYear: number;
+  pendingFees: number;
+  overdueAmount: number;
+  collectionRate: number;
+  refundAmount: number;
+  totalStudentsWithFees: number;
+  studentsFullyPaid: number;
+}
+
+export interface RevenueChartData {
+  month: string;
+  revenue: number;
+  collections: number;
+}
+
+export interface BatchRevenueChartData {
+  batchName: string;
+  totalFee: number;
+  collected: number;
+  outstanding: number;
+}
+
+export interface CollectionTrendData {
+  date: string;
+  amount: number;
+  count: number;
+}
+
+export interface OutstandingTrendData {
+  month: string;
+  outstanding: number;
+}
+
+// ---- Fee Reports ----
+
+export interface DailyCollectionReport {
+  date: string;
+  totalCollected: number;
+  totalTransactions: number;
+  byPaymentMode: { mode: PaymentMode; amount: number; count: number }[];
+  transactions: PaymentDetail[];
+}
+
+export interface MonthlyCollectionReport {
+  month: string;
+  year: number;
+  totalCollected: number;
+  totalTransactions: number;
+  dailyBreakdown: { date: string; amount: number }[];
+  byPaymentMode: { mode: PaymentMode; amount: number; count: number }[];
+}
+
+export interface StudentLedger {
+  student: {
+    id: string;
+    name: string;
+    rollNumber: string;
+    batchName: string;
+  };
+  totalFee: number;
+  totalDiscount: number;
+  netFee: number;
+  totalPaid: number;
+  totalRefund: number;
+  balance: number;
+  entries: StudentLedgerEntry[];
+}
+
+export interface StudentLedgerEntry {
+  date: string;
+  description: string;
+  type: 'FEE' | 'PAYMENT' | 'DISCOUNT' | 'REFUND';
+  debit: number;
+  credit: number;
+  balance: number;
+}
+
+export interface BatchRevenueReport {
+  batchId: string;
+  batchName: string;
+  totalStudents: number;
+  totalFees: number;
+  totalCollected: number;
+  totalOutstanding: number;
+  collectionRate: number;
+  students: {
+    studentId: string;
+    studentName: string;
+    rollNumber: string;
+    totalFee: number;
+    paid: number;
+    outstanding: number;
+    status: StudentFeeStatus;
+  }[];
+}
+
+export interface OutstandingReport {
+  totalOutstanding: number;
+  overdueAmount: number;
+  upcomingDues: number;
+  byBatch: {
+    batchId: string;
+    batchName: string;
+    outstanding: number;
+    studentCount: number;
+  }[];
+  students: {
+    studentId: string;
+    studentName: string;
+    rollNumber: string;
+    batchName: string;
+    outstanding: number;
+    lastPaymentDate: string | null;
+    nextDueDate: string | null;
+  }[];
+}
+
+// ---- Parent Portal Fee View ----
+
+export interface ParentFeeOverview {
+  totalFee: number;
+  paidAmount: number;
+  dueAmount: number;
+  nextDueDate: string | null;
+  nextDueAmount: number;
+}
+
+export interface ParentFeeLedger {
+  studentId: string;
+  studentName: string;
+  rollNumber: string;
+  overview: ParentFeeOverview;
+  feePlans: {
+    feePlanName: string;
+    totalAmount: number;
+    paidAmount: number;
+    status: StudentFeeStatus;
+    installments: InstallmentItem[];
+  }[];
+  recentPayments: PaymentDetail[];
 }
 
 // ---- Study Materials ----
@@ -574,3 +952,208 @@ export interface ParentPortalDashboard {
   recentNotices: NotificationItem[];
 }
 
+// ============================================================
+// Phase 3 — Notice Management
+// ============================================================
+
+export interface NoticeItem {
+  id: string;
+  title: string;
+  description: string;
+  priority: NoticePriority;
+  targetAudience: NoticeTargetAudience;
+  batchIds: string[];
+  publishDate: string;
+  expiryDate: string | null;
+  isPublished: boolean;
+  createdBy: string;
+  createdByName: string;
+  isRead?: boolean;
+  createdAt: string;
+}
+
+export interface CreateNoticeRequest {
+  title: string;
+  description: string;
+  priority: NoticePriority;
+  targetAudience: NoticeTargetAudience;
+  batchIds?: string[];
+  publishDate: string;
+  expiryDate?: string;
+}
+
+export interface UpdateNoticeRequest {
+  title?: string;
+  description?: string;
+  priority?: NoticePriority;
+  targetAudience?: NoticeTargetAudience;
+  batchIds?: string[];
+  publishDate?: string;
+  expiryDate?: string;
+  isPublished?: boolean;
+}
+
+// ============================================================
+// Phase 3 — Announcement System
+// ============================================================
+
+export interface AnnouncementItem {
+  id: string;
+  title: string;
+  content: string;
+  category: AnnouncementCategory;
+  attachments: string[];
+  scheduledAt: string | null;
+  publishedAt: string | null;
+  createdBy: string;
+  createdByName: string;
+  createdAt: string;
+}
+
+export interface CreateAnnouncementRequest {
+  title: string;
+  content: string;
+  category: AnnouncementCategory;
+  attachmentUrls?: string[];
+  scheduledAt?: string;
+}
+
+export interface UpdateAnnouncementRequest {
+  title?: string;
+  content?: string;
+  category?: AnnouncementCategory;
+  attachmentUrls?: string[];
+  scheduledAt?: string;
+}
+
+// ============================================================
+// Phase 3 — Communication Center (Tickets)
+// ============================================================
+
+export interface TicketItem {
+  id: string;
+  subject: string;
+  category: TicketCategory;
+  status: TicketStatus;
+  createdBy: string;
+  createdByName: string;
+  createdByRole: string;
+  assignedToName: string | null;
+  lastMessage: string | null;
+  messageCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TicketDetail extends TicketItem {
+  messages: TicketMessageItem[];
+}
+
+export interface TicketMessageItem {
+  id: string;
+  ticketId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: string;
+  content: string;
+  attachmentUrl: string | null;
+  createdAt: string;
+}
+
+export interface CreateTicketRequest {
+  subject: string;
+  category: TicketCategory;
+  message: string;
+}
+
+export interface ReplyTicketRequest {
+  message: string;
+  attachmentUrl?: string;
+}
+
+export interface UpdateTicketStatusRequest {
+  status: TicketStatus;
+}
+
+// ============================================================
+// Phase 3 — Document Center
+// ============================================================
+
+export interface DocumentItem {
+  id: string;
+  title: string;
+  documentType: DocumentType;
+  fileUrl: string;
+  fileSize: number;
+  mimeType: string | null;
+  version: number;
+  studentId: string | null;
+  studentName: string | null;
+  uploadedBy: string;
+  uploadedByName: string;
+  createdAt: string;
+}
+
+export interface UploadDocumentRequest {
+  title: string;
+  documentType: DocumentType;
+  studentId?: string;
+}
+
+// ============================================================
+// Phase 3 — Audit & Activity Logs
+// ============================================================
+
+export interface AuditLogItem {
+  id: string;
+  userId: string;
+  userName: string;
+  userRole: string;
+  action: string;
+  resource: string;
+  resourceId: string | null;
+  ipAddress: string | null;
+  createdAt: string;
+}
+
+export interface AuditActivityFeed {
+  logs: AuditLogItem[];
+  meta: PaginationMeta;
+}
+
+// ============================================================
+// Phase 3 — Enhanced Parent Portal
+// ============================================================
+
+export type PerformanceCategory = 'EXCELLENT' | 'GOOD' | 'NEEDS_IMPROVEMENT' | 'CRITICAL';
+
+export interface ParentDashboardEnhanced extends ParentPortalDashboard {
+  children: (ParentChildDetail & {
+    performanceCategory: PerformanceCategory;
+  })[];
+}
+
+export interface SubjectAnalysisItem {
+  subjectId: string;
+  subjectName: string;
+  averagePercentage: number;
+  testCount: number;
+  trend: 'UP' | 'DOWN' | 'STABLE';
+}
+
+// ============================================================
+// Phase 3 — Mobile API Types
+// ============================================================
+
+export interface MobileDeviceRegisterRequest {
+  fcmToken: string;
+  platform: 'ANDROID' | 'IOS';
+  deviceId: string;
+}
+
+export interface MobileApiEnvelope<T = unknown> {
+  success: boolean;
+  data: T;
+  message: string;
+  timestamp: string;
+}

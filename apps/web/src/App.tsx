@@ -44,6 +44,28 @@ import { MeritListPage } from './pages/tests/MeritListPage';
 import { ReportsPage } from './pages/reports/ReportsPage';
 import { ParentDashboardPage } from './pages/dashboard/ParentDashboardPage';
 
+// Communication & Notices
+import { NoticesPage } from './pages/communication/NoticesPage';
+import { AnnouncementsPage } from './pages/communication/AnnouncementsPage';
+import { SupportTicketsPage } from './pages/communication/SupportTicketsPage';
+
+// Documents
+import { DocumentsPage } from './pages/documents/DocumentsPage';
+
+// Fees (Phase 4)
+import { FeeDashboardPage } from './pages/fees/FeeDashboardPage';
+import { FeePlansPage } from './pages/fees/FeePlansPage';
+import { FeePlanDetailPage } from './pages/fees/FeePlanDetailPage';
+import { StudentFeesPage } from './pages/fees/StudentFeesPage';
+import { PaymentsPage } from './pages/fees/PaymentsPage';
+import { RecordPaymentPage } from './pages/fees/RecordPaymentPage';
+import { ReceiptsPage } from './pages/fees/ReceiptsPage';
+import { RefundsPage } from './pages/fees/RefundsPage';
+import { FeeReportsPage } from './pages/fees/FeeReportsPage';
+
+// Audit
+import { AuditDashboardPage } from './pages/audit/AuditDashboardPage';
+
 // Placeholder for unbuilt modules
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center h-96">
@@ -114,9 +136,29 @@ function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="parent-portal" element={<ParentDashboardPage />} />
 
+        {/* Communication & Documents */}
+        <Route path="notices" element={<NoticesPage />} />
+        <Route path="announcements" element={<AnnouncementsPage />} />
+        <Route path="tickets" element={<SupportTicketsPage />} />
+        <Route path="documents" element={<DocumentsPage />} />
+
+        {/* Audit */}
+        <Route path="audit" element={<AuditDashboardPage />} />
+
         {/* Stubs for Phase 3 */}
         <Route path="faculty" element={<PlaceholderPage title="Faculty Management" />} />
-        <Route path="fees" element={<PlaceholderPage title="Fee Collection & Invoicing" />} />
+        {/* Fees (Phase 4) */}
+        <Route path="fees">
+          <Route index element={<FeeDashboardPage />} />
+          <Route path="plans" element={<FeePlansPage />} />
+          <Route path="plans/:id" element={<FeePlanDetailPage />} />
+          <Route path="student-fees" element={<StudentFeesPage />} />
+          <Route path="payments" element={<PaymentsPage />} />
+          <Route path="payments/record" element={<RecordPaymentPage />} />
+          <Route path="receipts" element={<ReceiptsPage />} />
+          <Route path="refunds" element={<RefundsPage />} />
+          <Route path="reports" element={<FeeReportsPage />} />
+        </Route>
         <Route path="settings" element={<PlaceholderPage title="System Settings" />} />
         
         {/* Catch-all 404 inside AppShell */}
