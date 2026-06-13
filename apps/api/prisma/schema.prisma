@@ -52,6 +52,19 @@ model Tenant {
   feeRefunds         FeeRefund[]
   feeReceipts        FeeReceipt[]
 
+  // Phase 5
+  materials          Material[]
+  materialCategories MaterialCategory[]
+  materialAccessLogs MaterialAccessLog[]
+  assignments        Assignment[]
+  assignmentSubmissions AssignmentSubmission[]
+  questions          Question[]
+  questionBanks      QuestionBank[]
+  onlineTests        OnlineTest[]
+  testAttempts       TestAttempt[]
+  studentAchievements StudentAchievement[]
+  videoLectures      VideoLecture[]
+
   @@map("tenants")
 }
 
@@ -104,6 +117,13 @@ model User {
   ticketsAssigned  SupportTicket[]    @relation("TicketAssignedTo")
   ticketMessages   TicketMessage[]    @relation("TicketMessageSender")
   documentsUploaded Document[]        @relation("DocumentUploadedBy")
+
+  // Phase 5
+  newMaterialsUploaded Material[]      @relation("NewMaterialUploadedBy")
+  newVersionsUploaded  MaterialVersion[] @relation("NewVersionUploadedBy")
+  materialAccessLogs MaterialAccessLog[] @relation("MaterialAccessByUser")
+  assignmentsCreated Assignment[]      @relation("AssignmentCreatedBy")
+  submissionsReviewed AssignmentSubmission[] @relation("AssignmentSubmissionReviewedBy")
 
   @@unique([tenantId, email])
   @@index([tenantId])
@@ -160,6 +180,14 @@ model Student {
   studentFees     StudentFee[]
   // Phase 3
   uploadedDocuments Document[]
+
+  // Phase 5
+  points             Int               @default(0)
+  level              Int               @default(1)
+  materialFavorites  MaterialFavorite[]
+  assignmentSubmissions AssignmentSubmission[]
+  testAttempts       TestAttempt[]
+  achievements       StudentAchievement[]
 
   @@unique([tenantId, rollNumber])
   @@index([tenantId])
@@ -300,6 +328,12 @@ model Batch {
   feeStructures  FeeStructure[]
   studyMaterials StudyMaterial[]
 
+  // Phase 5
+  materials      Material[]
+  assignments    Assignment[]
+  onlineTests    OnlineTest[]
+  videoLectures  VideoLecture[]
+
   @@unique([tenantId, code])
   @@index([tenantId])
   @@index([isActive])
@@ -320,6 +354,14 @@ model Subject {
   batchSubjects BatchSubject[]
   attendanceSessions AttendanceSession[]
   studyMaterials StudyMaterial[]
+
+  // Phase 5
+  materials      Material[]
+  assignments    Assignment[]
+  questions      Question[]
+  questionBanks  QuestionBank[]
+  onlineTests    OnlineTest[]
+  videoLectures  VideoLecture[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -1120,4 +1162,408 @@ enum DocumentType {
   CERTIFICATE
   NOTICE_PDF
   OTHER
+}
+
+// ============================================================
+// PHASE 5 — LMS, STUDY MATERIALS, AND ONLINE TESTING
+// ============================================================
+
+model MaterialCategory {
+  id        String     @id @default(uuid()) @db.Uuid
+  tenantId  String     @map("tenant_id") @db.Uuid
+  name      String     @db.VarChar(100)
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  tenant    Tenant     @relation(fields: [tenantId], references: [id])
+  materials Material[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+  @@map("material_categories")
+}
+
+model Material {
+  id           String             @id @default(uuid()) @db.Uuid
+  tenantId     String             @map("tenant_id") @db.Uuid
+  categoryId   String?            @map("category_id") @db.Uuid
+  batchId      String?            @map("batch_id") @db.Uuid
+  subjectId    String?            @map("subject_id") @db.Uuid
+  course       String?            @db.VarChar(100)
+  chapter      String?            @db.VarChar(100)
+  topic        String?            @db.VarChar(100)
+  title        String             @db.VarChar(255)
+  description  String?            @db.Text
+  fileUrl      String             @map("file_url") @db.VarChar(500)
+  fileSize     Int                @default(0) @map("file_size")
+  mimeType     String?            @map("mime_type") @db.VarChar(100)
+  uploadedBy   String             @map("uploaded_by") @db.Uuid
+  version      Int                @default(1)
+  isPublished  Boolean            @default(true) @map("is_published")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  deletedAt    DateTime?          @map("deleted_at")
+
+  // Relations
+  tenant       Tenant             @relation(fields: [tenantId], references: [id])
+  category     MaterialCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  batch        Batch?             @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  subject      Subject?           @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  uploader     User               @relation("NewMaterialUploadedBy", fields: [uploadedBy], references: [id])
+  versions     MaterialVersion[]
+  accessLogs   MaterialAccessLog[]
+  favorites    MaterialFavorite[]
+
+  @@index([tenantId])
+  @@index([batchId])
+  @@index([subjectId])
+  @@index([deletedAt])
+  @@map("materials")
+}
+
+model MaterialVersion {
+  id          String   @id @default(uuid()) @db.Uuid
+  materialId  String   @map("material_id") @db.Uuid
+  version     Int
+  fileUrl     String   @map("file_url") @db.VarChar(500)
+  fileSize    Int      @default(0) @map("file_size")
+  uploadedBy  String   @map("uploaded_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  material    Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  uploader    User     @relation("NewVersionUploadedBy", fields: [uploadedBy], references: [id])
+
+  @@map("material_versions")
+}
+
+model MaterialAccessLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  materialId String   @map("material_id") @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  action     String   @db.VarChar(50) // "PREVIEW", "DOWNLOAD"
+  ipAddress  String?  @map("ip_address") @db.VarChar(50)
+  userAgent  String?  @map("user_agent") @db.VarChar(500)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  user       User     @relation("MaterialAccessByUser", fields: [userId], references: [id])
+
+  @@index([tenantId])
+  @@index([materialId])
+  @@index([userId])
+  @@map("material_access_logs")
+}
+
+model MaterialFavorite {
+  id         String   @id @default(uuid()) @db.Uuid
+  materialId String   @map("material_id") @db.Uuid
+  studentId  String   @map("student_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  material   Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  student    Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, materialId])
+  @@map("material_favorites")
+}
+
+model Assignment {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @map("tenant_id") @db.Uuid
+  batchId     String   @map("batch_id") @db.Uuid
+  subjectId   String   @map("subject_id") @db.Uuid
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  fileUrl     String?  @map("file_url") @db.VarChar(500)
+  deadline    DateTime @db.Timestamp
+  createdBy   String   @map("created_by") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  // Relations
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  batch       Batch    @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  creator     User     @relation("AssignmentCreatedBy", fields: [createdBy], references: [id])
+  submissions AssignmentSubmission[]
+
+  @@index([tenantId])
+  @@index([batchId])
+  @@index([subjectId])
+  @@index([deletedAt])
+  @@map("assignments")
+}
+
+model AssignmentSubmission {
+  id           String             @id @default(uuid()) @db.Uuid
+  tenantId     String             @map("tenant_id") @db.Uuid
+  assignmentId String             @map("assignment_id") @db.Uuid
+  studentId    String             @map("student_id") @db.Uuid
+  fileUrl      String?            @map("file_url") @db.VarChar(500)
+  submittedAt  DateTime           @default(now()) @map("submitted_at")
+  status       SubmissionStatus   @default(SUBMITTED)
+  score        Decimal?           @db.Decimal(5, 2)
+  feedback     String?            @db.Text
+  reviewedBy   String?            @map("reviewed_by") @db.Uuid
+  reviewedAt   DateTime?          @map("reviewed_at")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  tenant       Tenant             @relation(fields: [tenantId], references: [id])
+  assignment   Assignment         @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  student      Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  reviewer     User?              @relation("AssignmentSubmissionReviewedBy", fields: [reviewedBy], references: [id])
+
+  @@unique([assignmentId, studentId])
+  @@index([tenantId])
+  @@index([studentId])
+  @@map("assignment_submissions")
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  REVIEWED
+  LATE
+}
+
+model Question {
+  id           String         @id @default(uuid()) @db.Uuid
+  tenantId     String         @map("tenant_id") @db.Uuid
+  subjectId    String         @map("subject_id") @db.Uuid
+  topic        String         @db.VarChar(100)
+  difficulty   DifficultyLevel
+  marks        Decimal        @db.Decimal(5, 2)
+  questionType QuestionType   @map("question_type")
+  questionText String         @map("question_text") @db.Text
+  options      Json?          // For MCQ: ["Option A", "Option B", ...]
+  correctAnswer String        @map("correct_answer") @db.Text
+  explanation  String?        @db.Text
+  tags         String[]       @default([])
+  examTypes    TargetExam[]   @map("exam_types")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  deletedAt    DateTime?      @map("deleted_at")
+
+  // Relations
+  tenant       Tenant         @relation(fields: [tenantId], references: [id])
+  subject      Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  testQuestions OnlineTestQuestion[]
+  questionBankQuestions QuestionBankQuestion[]
+
+  @@index([tenantId])
+  @@index([subjectId])
+  @@index([difficulty])
+  @@index([deletedAt])
+  @@map("questions")
+}
+
+enum DifficultyLevel {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuestionType {
+  MCQ
+  NUMERICAL
+  TRUE_FALSE
+  SUBJECTIVE
+}
+
+model QuestionBank {
+  id          String         @id @default(uuid()) @db.Uuid
+  tenantId    String         @map("tenant_id") @db.Uuid
+  name        String         @db.VarChar(255)
+  description String?        @db.Text
+  subjectId   String         @map("subject_id") @db.Uuid
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  tenant      Tenant         @relation(fields: [tenantId], references: [id])
+  subject     Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  questionBankQuestions QuestionBankQuestion[]
+
+  @@index([tenantId])
+  @@map("question_banks")
+}
+
+model QuestionBankQuestion {
+  questionBankId String @map("question_bank_id") @db.Uuid
+  questionId     String @map("question_id") @db.Uuid
+
+  questionBank   QuestionBank @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
+  question       Question     @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([questionBankId, questionId])
+  @@map("question_bank_questions")
+}
+
+model OnlineTest {
+  id              String         @id @default(uuid()) @db.Uuid
+  tenantId        String         @map("tenant_id") @db.Uuid
+  batchId         String         @map("batch_id") @db.Uuid
+  subjectId       String?        @map("subject_id") @db.Uuid
+  title           String         @db.VarChar(255)
+  description     String?        @db.Text
+  testMode        OnlineTestMode @map("test_mode")
+  durationMinutes Int            @map("duration_minutes")
+  totalMarks      Decimal        @map("total_marks") @db.Decimal(6, 2)
+  passingMarks    Decimal        @map("passing_marks") @db.Decimal(6, 2)
+  negativeMarking Decimal        @default(0) @map("negative_marking") @db.Decimal(5, 2)
+  scheduledStart  DateTime       @map("scheduled_start") @db.Timestamp
+  scheduledEnd    DateTime       @map("scheduled_end") @db.Timestamp
+  isPublished     Boolean        @default(false) @map("is_published")
+  sectionalSettings Json?        @map("sectional_settings")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  deletedAt       DateTime?      @map("deleted_at")
+
+  // Relations
+  tenant          Tenant         @relation(fields: [tenantId], references: [id])
+  batch           Batch          @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  subject         Subject?       @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  questions       OnlineTestQuestion[]
+  attempts        TestAttempt[]
+
+  @@index([tenantId])
+  @@index([batchId])
+  @@index([deletedAt])
+  @@map("online_tests")
+}
+
+enum OnlineTestMode {
+  PRACTICE
+  MOCK
+  SCHOLARSHIP
+  ENTRANCE_SIMULATION
+}
+
+model OnlineTestQuestion {
+  onlineTestId String @map("online_test_id") @db.Uuid
+  questionId   String @map("question_id") @db.Uuid
+  sortOrder    Int    @map("sort_order")
+  marks        Decimal @db.Decimal(5, 2)
+
+  onlineTest   OnlineTest @relation(fields: [onlineTestId], references: [id], onDelete: Cascade)
+  question     Question   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@id([onlineTestId, questionId])
+  @@map("online_test_questions")
+}
+
+model TestAttempt {
+  id              String         @id @default(uuid()) @db.Uuid
+  tenantId        String         @map("tenant_id") @db.Uuid
+  onlineTestId    String         @map("online_test_id") @db.Uuid
+  studentId       String         @map("student_id") @db.Uuid
+  startedAt       DateTime       @default(now()) @map("started_at")
+  submittedAt     DateTime?      @map("submitted_at")
+  status          AttemptStatus  @default(IN_PROGRESS)
+  scoreObtained   Decimal?       @map("score_obtained") @db.Decimal(6, 2)
+  accuracy        Decimal?       @db.Decimal(5, 2)
+  timeSpentSeconds Int?          @map("time_spent_seconds")
+  resumeState     Json?          @map("resume_state")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  tenant          Tenant         @relation(fields: [tenantId], references: [id])
+  onlineTest      OnlineTest     @relation(fields: [onlineTestId], references: [id], onDelete: Cascade)
+  student         Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  responses       TestResponse[]
+
+  @@unique([onlineTestId, studentId])
+  @@index([tenantId])
+  @@index([studentId])
+  @@map("test_attempts")
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+  AUTO_SUBMITTED
+  ABANDONED
+}
+
+model TestResponse {
+  id            String      @id @default(uuid()) @db.Uuid
+  testAttemptId String      @map("test_attempt_id") @db.Uuid
+  questionId    String      @map("question_id") @db.Uuid
+  selectedAnswer String?    @map("selected_answer") @db.Text
+  isCorrect     Boolean?    @map("is_correct")
+  marksObtained Decimal?    @map("marks_obtained") @db.Decimal(5, 2)
+  timeSpentSeconds Int?     @map("time_spent_seconds")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  attempt       TestAttempt @relation(fields: [testAttemptId], references: [id], onDelete: Cascade)
+
+  @@unique([testAttemptId, questionId])
+  @@map("test_responses")
+}
+
+model StudentAchievement {
+  id              String          @id @default(uuid()) @db.Uuid
+  tenantId        String          @map("tenant_id") @db.Uuid
+  studentId       String          @map("student_id") @db.Uuid
+  achievementType AchievementType @map("achievement_type")
+  points          Int             @default(0)
+  badgeName       String?         @map("badge_name") @db.VarChar(100)
+  badgeImageUrl   String?         @map("badge_image_url") @db.VarChar(500)
+  description     String?         @db.Text
+  earnedAt        DateTime        @default(now()) @map("earned_at")
+
+  // Relations
+  tenant          Tenant          @relation(fields: [tenantId], references: [id])
+  student         Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([studentId])
+  @@map("student_achievements")
+}
+
+enum AchievementType {
+  BADGE
+  POINTS
+  LEVEL_UP
+}
+
+model VideoLecture {
+  id            String      @id @default(uuid()) @db.Uuid
+  tenantId      String      @map("tenant_id") @db.Uuid
+  batchId       String?     @map("batch_id") @db.Uuid
+  subjectId     String?     @map("subject_id") @db.Uuid
+  title         String      @db.VarChar(255)
+  description   String?     @db.Text
+  videoUrl      String      @map("video_url") @db.VarChar(500)
+  provider      VideoProvider @default(MINIO)
+  durationSeconds Int?      @map("duration_seconds")
+  thumbnailUrl  String?     @map("thumbnail_url") @db.VarChar(500)
+  isLive        Boolean     @default(false) @map("is_live")
+  scheduledStart DateTime?  @map("scheduled_start")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  deletedAt     DateTime?   @map("deleted_at")
+
+  tenant        Tenant      @relation(fields: [tenantId], references: [id])
+  batch         Batch?      @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  subject       Subject?    @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@map("video_lectures")
+}
+
+enum VideoProvider {
+  MINIO
+  YOUTUBE
+  VIMEO
+  AWS_MEDIACONVERT
+  M3U8
 }

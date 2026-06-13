@@ -250,3 +250,52 @@ export enum DocumentType {
   NOTICE_PDF = 'NOTICE_PDF',
   OTHER = 'OTHER',
 }
+
+// ---- Phase 5 Enums ----
+
+export enum DifficultyLevel {
+  EASY = 'EASY',
+  MEDIUM = 'MEDIUM',
+  HARD = 'HARD',
+}
+
+export enum QuestionType {
+  MCQ = 'MCQ',
+  NUMERICAL = 'NUMERICAL',
+  TRUE_FALSE = 'TRUE_FALSE',
+  SUBJECTIVE = 'SUBJECTIVE',
+}
+
+export enum OnlineTestMode {
+  PRACTICE = 'PRACTICE',
+  MOCK = 'MOCK',
+  SCHOLARSHIP = 'SCHOLARSHIP',
+  ENTRANCE_SIMULATION = 'ENTRANCE_SIMULATION',
+}
+
+export enum AttemptStatus {
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  AUTO_SUBMITTED = 'AUTO_SUBMITTED',
+  ABANDONED = 'ABANDONED',
+}
+
+export enum SubmissionStatus {
+  SUBMITTED = 'SUBMITTED',
+  REVIEWED = 'REVIEWED',
+  LATE = 'LATE',
+}
+
+export enum AchievementType {
+  BADGE = 'BADGE',
+  POINTS = 'POINTS',
+  LEVEL_UP = 'LEVEL_UP',
+}
+
+export enum VideoProvider {
+  MINIO = 'MINIO',
+  YOUTUBE = 'YOUTUBE',
+  VIMEO = 'VIMEO',
+  AWS_MEDIACONVERT = 'AWS_MEDIACONVERT',
+  M3U8 = 'M3U8',
+}

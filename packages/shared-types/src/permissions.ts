@@ -105,6 +105,15 @@ export enum Permission {
   DOCUMENT_VIEW_ALL = 'document:view:all',
   DOCUMENT_VIEW_OWN = 'document:view:own',
   DOCUMENT_DELETE = 'document:delete',
+
+  // Phase 5
+  ASSIGNMENT_CREATE = 'assignment:create',
+  ASSIGNMENT_SUBMIT = 'assignment:submit',
+  ASSIGNMENT_REVIEW = 'assignment:review',
+  ONLINE_TEST_MANAGE = 'online-test:manage',
+  ONLINE_TEST_TAKE = 'online-test:take',
+  QUESTION_BANK_MANAGE = 'question-bank:manage',
+  ACHIEVEMENT_MANAGE = 'achievement:manage',
 }
 
 import { UserRole } from './enums';
@@ -176,6 +185,14 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.DOCUMENT_VIEW_ALL,
     Permission.DOCUMENT_VIEW_OWN,
     Permission.DOCUMENT_DELETE,
+    // Phase 5
+    Permission.ASSIGNMENT_CREATE,
+    Permission.ASSIGNMENT_SUBMIT,
+    Permission.ASSIGNMENT_REVIEW,
+    Permission.ONLINE_TEST_MANAGE,
+    Permission.ONLINE_TEST_TAKE,
+    Permission.QUESTION_BANK_MANAGE,
+    Permission.ACHIEVEMENT_MANAGE,
   ],
 
   [UserRole.FACULTY]: [
@@ -204,6 +221,11 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.TICKET_RESPOND,
     Permission.DOCUMENT_UPLOAD,
     Permission.DOCUMENT_VIEW_ALL,
+    // Phase 5
+    Permission.ASSIGNMENT_CREATE,
+    Permission.ASSIGNMENT_REVIEW,
+    Permission.ONLINE_TEST_MANAGE,
+    Permission.QUESTION_BANK_MANAGE,
   ],
 
   [UserRole.STUDENT]: [
@@ -215,6 +237,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.MATERIAL_DOWNLOAD,
     Permission.NOTIFICATION_VIEW_OWN,
     Permission.REPORT_OWN,
+    // Phase 5
+    Permission.ASSIGNMENT_SUBMIT,
+    Permission.ONLINE_TEST_TAKE,
   ],
 
   [UserRole.PARENT]: [

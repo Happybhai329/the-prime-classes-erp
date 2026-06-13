@@ -87,6 +87,47 @@ export const sidebarNavigation: NavSection[] = [
     ],
   },
   {
+    title: 'LMS & Testing',
+    items: [
+      {
+        label: 'Study Materials',
+        path: '/materials',
+        icon: FileText,
+        permissions: [Permission.MATERIAL_DOWNLOAD],
+      },
+      {
+        label: 'Digital Library',
+        path: '/library',
+        icon: GraduationCap,
+        permissions: [Permission.MATERIAL_DOWNLOAD],
+      },
+      {
+        label: 'Assignments',
+        path: '/assignments',
+        icon: ClipboardList,
+        permissions: [Permission.ASSIGNMENT_SUBMIT, Permission.ASSIGNMENT_CREATE],
+      },
+      {
+        label: 'Online Tests',
+        path: '/online-tests',
+        icon: ClipboardList,
+        permissions: [Permission.ONLINE_TEST_TAKE, Permission.ONLINE_TEST_MANAGE],
+      },
+      {
+        label: 'Question Bank',
+        path: '/question-bank',
+        icon: Layers,
+        permissions: [Permission.QUESTION_BANK_MANAGE],
+      },
+      {
+        label: 'Leaderboard',
+        path: '/leaderboard',
+        icon: BarChart3,
+        permissions: [],
+      },
+    ],
+  },
+  {
     title: 'Finance',
     items: [
       {

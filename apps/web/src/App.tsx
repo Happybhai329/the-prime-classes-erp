@@ -66,6 +66,16 @@ import { FeeReportsPage } from './pages/fees/FeeReportsPage';
 // Audit
 import { AuditDashboardPage } from './pages/audit/AuditDashboardPage';
 
+// Phase 5 — LMS & Online Tests
+import { MaterialsPage } from './pages/materials/MaterialsPage';
+import { DigitalLibraryPage } from './pages/materials/DigitalLibraryPage';
+import { AssignmentsPage } from './pages/assignments/AssignmentsPage';
+import { OnlineTestsPage } from './pages/tests/OnlineTestsPage';
+import { OnlineExamPage } from './pages/tests/OnlineExamPage';
+import { QuestionBankPage } from './pages/tests/QuestionBankPage';
+import { LeaderboardPage } from './pages/leaderboard/LeaderboardPage';
+import { StudentAnalyticsPage } from './pages/reports/StudentAnalyticsPage';
+
 // Placeholder for unbuilt modules
 const PlaceholderPage = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center h-96">
@@ -75,6 +85,7 @@ const PlaceholderPage = ({ title }: { title: string }) => (
     </div>
   </div>
 );
+
 
 function App() {
   return (
@@ -134,6 +145,7 @@ function App() {
 
         {/* Reports & Parent Portal */}
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="reports/analytics" element={<StudentAnalyticsPage />} />
         <Route path="parent-portal" element={<ParentDashboardPage />} />
 
         {/* Communication & Documents */}
@@ -144,6 +156,15 @@ function App() {
 
         {/* Audit */}
         <Route path="audit" element={<AuditDashboardPage />} />
+
+        {/* LMS & Online Testing (Phase 5) */}
+        <Route path="materials" element={<MaterialsPage />} />
+        <Route path="library" element={<DigitalLibraryPage />} />
+        <Route path="assignments" element={<AssignmentsPage />} />
+        <Route path="online-tests" element={<OnlineTestsPage />} />
+        <Route path="online-tests/exam/:testId" element={<OnlineExamPage />} />
+        <Route path="question-bank" element={<QuestionBankPage />} />
+        <Route path="leaderboard" element={<LeaderboardPage />} />
 
         {/* Stubs for Phase 3 */}
         <Route path="faculty" element={<PlaceholderPage title="Faculty Management" />} />

@@ -23,6 +23,13 @@ import { AuditModule } from './modules/audit/audit.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { HealthModule } from './modules/health/health.module';
 
+// Phase 5 Modules
+import { AssignmentsModule } from './modules/assignments/assignments.module';
+import { QuestionsModule } from './modules/questions/questions.module';
+import { OnlineTestsModule } from './modules/online-tests/online-tests.module';
+import { AchievementsModule } from './modules/achievements/achievements.module';
+import { VideosModule } from './modules/videos/videos.module';
+
 // Phase 3 Modules
 import { StorageModule } from './modules/storage/storage.module';
 import { NoticesModule } from './modules/notices/notices.module';
@@ -78,6 +85,13 @@ import { CommunicationModule } from './modules/communication/communication.modul
     AuditModule,
     DashboardModule,
     HealthModule,
+    
+    // Phase 5 Modules
+    AssignmentsModule,
+    QuestionsModule,
+    OnlineTestsModule,
+    AchievementsModule,
+    VideosModule,
     
     // Phase 3 Feature modules
     StorageModule,
