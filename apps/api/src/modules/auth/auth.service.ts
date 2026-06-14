@@ -36,7 +36,10 @@ export class AuthService {
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findFirst({
       where: {
-        email: dto.email,
+        OR: [
+          { email: dto.email },
+          { phone: dto.email },
+        ],
         deletedAt: null,
       },
       include: {
@@ -241,5 +244,36 @@ export class AuthService {
     });
 
     return refreshToken;
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { phone: email }],
+        deletedAt: null,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User profile not found with the provided identifier');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes validity
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: otp,
+        passwordResetExpiry: expiry,
+      },
+    });
+
+    this.logger.log(`[PASSWORD RESET SYSTEM] Generated OTP for user ${user.email}: ${otp}`);
+
+    return {
+      message: 'Password reset OTP has been generated successfully',
+      token: otp, // Returned for dev testing ease
+    };
   }
 }

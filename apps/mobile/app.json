@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "The Prime Classes",
+    "slug": "prime-classes-erp",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1B1F1C"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.primeclasses.erp"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1B1F1C"
+      },
+      "package": "com.primeclasses.erp",
+      "permissions": [
+        "NOTIFICATIONS"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#4A5D4E",
+          "sounds": []
+        }
+      ]
+    ]
+  }
+}

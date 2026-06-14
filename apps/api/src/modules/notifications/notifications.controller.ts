@@ -15,7 +15,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { Permission } from '@prime/shared-types';
 import { NotificationsService } from './notifications.service';
-import { CreateNotificationDto, QueryNotificationDto } from './dto';
+import { CreateNotificationDto, QueryNotificationDto, RegisterDeviceDto } from './dto';
 import { CurrentUser, Permissions } from '../../common/decorators';
 import { PermissionsGuard } from '../../common/guards';
 
@@ -74,5 +74,15 @@ export class NotificationsController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.notificationsService.markAllRead(tenantId, userId);
+  }
+
+  @Post('register')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Register device token for push notifications' })
+  async registerDevice(
+    @CurrentUser('sub') userId: string,
+    @Body() dto: RegisterDeviceDto,
+  ) {
+    return this.notificationsService.registerDevice(userId, dto);
   }
 }

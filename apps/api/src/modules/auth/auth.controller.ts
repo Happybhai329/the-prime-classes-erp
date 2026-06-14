@@ -28,6 +28,14 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request password reset OTP' })
+  async forgotPassword(@Body() dto: { email: string }) {
+    return this.authService.forgotPassword(dto.email);
+  }
+
   @UseGuards(AuthGuard('jwt-refresh'))
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
