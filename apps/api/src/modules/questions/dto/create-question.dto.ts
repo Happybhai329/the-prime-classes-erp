@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsUUID, IsEnum, IsNumber, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsUUID, IsEnum, IsNumber, IsArray, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DifficultyLevel, QuestionType, TargetExam } from '@prime/shared-types';
 import { Type } from 'class-transformer';
@@ -64,4 +64,4 @@ export class CreateQuestionDto {
   examTypes?: TargetExam[];
 }
 
-import { Min } from 'class-validator';
+
