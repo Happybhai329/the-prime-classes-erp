@@ -8,12 +8,14 @@ import {
   ClipboardList,
   TrendingUp,
   TrendingDown,
+  AlertCircle,
 } from 'lucide-react';
 import {
   AreaChart, Area, LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
 import { useAdminDashboard, useStudentGrowthChart, useAttendanceTrendsChart, useFeeTrendsChart } from '@/hooks/useDashboard';
+import { useAdminIntelligence } from '@/hooks/useAnalytics';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -69,19 +71,44 @@ export const DashboardPage: React.FC = () => {
   const { data: growthData, isLoading: growthLoading } = useStudentGrowthChart();
   const { data: attendanceData, isLoading: attendanceLoading } = useAttendanceTrendsChart();
   const { data: feeData, isLoading: feeLoading } = useFeeTrendsChart();
+  
+  // Phase 7 intelligence query
+  const { data: adminIntel, isLoading: intelLoading } = useAdminIntelligence();
 
-  if (isLoading) {
+  if (isLoading || intelLoading) {
     return <LoadingSpinner size="lg" className="h-96" />;
   }
 
   const stats = dashboard?.stats;
+  const capacityAnalysis = adminIntel?.capacityAnalysis || [];
+  const enrollmentForecast = adminIntel?.enrollmentForecast || [];
+  const revenueTrends = adminIntel?.revenueTrends || [];
 
   return (
     <div className="space-y-6 animate-slide-up" id="dashboard-page">
       <PageHeader
-        title="Dashboard"
-        description="Welcome back! Here's what's happening today."
+        title="Institute Intelligence Dashboard"
+        description="Core ERP metrics paired with explainable AI projections and capacity forecasts."
       />
+
+      {/* Capacity Warning Alert */}
+      {capacityAnalysis.some((c: any) => c.status === 'CRITICAL' || c.status === 'WARNING') && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 text-amber-900 text-sm">
+          <AlertCircle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold">Batch Capacity Alerts:</span>
+            <div className="mt-1 space-y-1">
+              {capacityAnalysis
+                .filter((c: any) => c.status === 'CRITICAL' || c.status === 'WARNING')
+                .map((c: any) => (
+                  <p key={c.batchId}>
+                    Batch <span className="font-semibold">{c.batchName} ({c.batchCode})</span> is at <span className="font-bold text-red-600">{c.utilizationRate}%</span> capacity ({c.currentStrength}/{c.maxStrength} students). Consider opening a parallel batch.
+                  </p>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -123,11 +150,12 @@ export const DashboardPage: React.FC = () => {
         />
       </div>
 
-      {/* Charts */}
+      {/* Projections Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        <ChartCard title="Student Growth (12 Months)" isLoading={growthLoading}>
+        {/* Enrollment growth + projection */}
+        <ChartCard title="Admissions Growth & 3-Month Projection" isLoading={growthLoading}>
           <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={growthData || []}>
+            <AreaChart data={enrollmentForecast.length > 0 ? enrollmentForecast : growthData || []}>
               <defs>
                 <linearGradient id="gradBlue" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#1a56db" stopOpacity={0.15} />
@@ -143,6 +171,7 @@ export const DashboardPage: React.FC = () => {
           </ResponsiveContainer>
         </ChartCard>
 
+        {/* Attendance trends */}
         <ChartCard title="Attendance Trends (30 Days)" isLoading={attendanceLoading}>
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={attendanceData || []}>
@@ -160,15 +189,16 @@ export const DashboardPage: React.FC = () => {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Fee Collection (12 Months)" isLoading={feeLoading}>
+        {/* Revenue forecast chart */}
+        <ChartCard title="Revenue History & Forecast Projections" isLoading={feeLoading}>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={feeData || []}>
+            <BarChart data={revenueTrends.length > 0 ? revenueTrends : feeData || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} />
               <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} />
               <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }} />
-              <Bar dataKey="collected" fill="#1a56db" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="pending" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="actual" fill="#1a56db" radius={[4, 4, 0, 0]} name="Actual Collections" />
+              <Bar dataKey="forecast" fill="#ec4899" radius={[4, 4, 0, 0]} name="AI Forecast Projection" />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
@@ -219,27 +249,27 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Recent Payments */}
+        {/* Batch capacity utilization */}
         <div className="card overflow-hidden">
           <div className="px-5 py-4 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">Recent Payments</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Batch Enrollment Capacity</h3>
           </div>
           <div className="divide-y divide-gray-50">
-            {(dashboard?.recentPayments || []).slice(0, 5).map((payment: any) => (
-              <div key={payment.id} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50/50">
+            {capacityAnalysis.slice(0, 5).map((cap: any) => (
+              <div key={cap.batchId} className="flex items-center justify-between px-5 py-3 hover:bg-gray-50/50">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{payment.studentName}</p>
-                  <p className="text-xs text-gray-500">{payment.receiptNumber}</p>
+                  <p className="text-sm font-medium text-gray-900">{cap.batchName}</p>
+                  <p className="text-xs text-gray-500">{cap.currentStrength} of {cap.maxStrength} Students</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-emerald-600">₹{payment.amountPaid}</p>
-                  <p className="text-xs text-gray-400">{payment.paymentMode}</p>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                    cap.status === 'CRITICAL' ? 'bg-red-50 text-red-700' : cap.status === 'WARNING' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'
+                  }`}>
+                    {cap.utilizationRate}%
+                  </span>
                 </div>
               </div>
             ))}
-            {(!dashboard?.recentPayments || dashboard.recentPayments.length === 0) && (
-              <p className="text-sm text-gray-400 text-center py-8">No recent payments</p>
-            )}
           </div>
         </div>
       </div>

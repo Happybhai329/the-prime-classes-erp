@@ -75,6 +75,8 @@ import { OnlineExamPage } from './pages/tests/OnlineExamPage';
 import { QuestionBankPage } from './pages/tests/QuestionBankPage';
 import { LeaderboardPage } from './pages/leaderboard/LeaderboardPage';
 import { StudentAnalyticsPage } from './pages/reports/StudentAnalyticsPage';
+import { PredictionDashboard } from './pages/analytics/PredictionDashboard';
+import { FacultyInsights } from './pages/analytics/FacultyInsights';
 
 // Placeholder for unbuilt modules
 const PlaceholderPage = ({ title }: { title: string }) => (
@@ -143,10 +145,12 @@ function App() {
           <Route path=":id/merit-list" element={<MeritListPage />} />
         </Route>
 
-        {/* Reports & Parent Portal */}
+        {/* Reports, Analytics & Parent Portal */}
         <Route path="reports" element={<ReportsPage />} />
         <Route path="reports/analytics" element={<StudentAnalyticsPage />} />
         <Route path="parent-portal" element={<ParentDashboardPage />} />
+        <Route path="analytics/student/:studentId" element={<PredictionDashboard />} />
+        <Route path="analytics/faculty" element={<FacultyInsights />} />
 
         {/* Communication & Documents */}
         <Route path="notices" element={<NoticesPage />} />

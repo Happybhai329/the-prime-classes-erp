@@ -188,6 +188,7 @@ model Student {
   assignmentSubmissions AssignmentSubmission[]
   testAttempts       TestAttempt[]
   achievements       StudentAchievement[]
+  analyticsSnapshot  StudentAnalyticsSnapshot?
 
   @@unique([tenantId, rollNumber])
   @@index([tenantId])
@@ -1566,4 +1567,121 @@ enum VideoProvider {
   VIMEO
   AWS_MEDIACONVERT
   M3U8
+}
+
+// ============================================================
+// PHASE 7 — AI ANALYTICS & DATA WAREHOUSE LAYER
+// ============================================================
+
+model StudentAnalyticsSnapshot {
+  id                 String             @id @default(uuid()) @db.Uuid
+  tenantId           String             @map("tenant_id") @db.Uuid
+  studentId          String             @unique @map("student_id") @db.Uuid
+  successProbability Decimal            @map("success_probability") @db.Decimal(5, 2)
+  category           PerformanceCategory
+  rankTrend          RankTrendDirection @map("rank_trend")
+  predictedRank      Int?               @map("predicted_rank")
+  weakTopics         Json               @default("[]") @map("weak_topics") // Array of { subjectId, topic, accuracy, questionCount }
+  strongTopics       Json               @default("[]") @map("strong_topics") // Array of { subjectId, topic, accuracy }
+  recommendations    Json               @default("[]") // Array of study recommendations
+  predictedExams     Json               @default("{}") @map("predicted_exams") // Map of targetExam: probability%
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  student            Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([category])
+  @@map("student_analytics_snapshots")
+}
+
+enum PerformanceCategory {
+  EXCELLENT
+  STRONG
+  MODERATE
+  AT_RISK
+}
+
+enum RankTrendDirection {
+  UPWARD
+  DOWNWARD
+  STABLE
+}
+
+model HistoricalPerformance {
+  id                     String   @id @default(uuid()) @db.Uuid
+  tenantId               String   @map("tenant_id") @db.Uuid
+  studentId              String   @map("student_id") @db.Uuid
+  month                  Int      // 1-12
+  year                   Int
+  averageTestScore       Decimal  @map("average_test_score") @db.Decimal(5, 2)
+  attendanceRate         Decimal  @map("attendance_rate") @db.Decimal(5, 2)
+  assignmentCompletionRate Decimal @map("assignment_completion_rate") @db.Decimal(5, 2)
+  studyActivityScore     Int      @map("study_activity_score") @default(0) // based on access logs, video views
+  computedAt             DateTime @default(now()) @map("computed_at")
+
+  @@unique([studentId, month, year])
+  @@index([tenantId])
+  @@index([studentId])
+  @@map("historical_performance")
+}
+
+model AttendanceSnapshot {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  studentId      String   @map("student_id") @db.Uuid
+  month          Int
+  year           Int
+  presentCount   Int      @map("present_count")
+  absentCount    Int      @map("absent_count")
+  lateCount      Int      @map("late_count")
+  leaveCount     Int      @map("leave_count")
+  totalSessions  Int      @map("total_sessions")
+  computedAt     DateTime @default(now()) @map("computed_at")
+
+  @@unique([studentId, month, year])
+  @@index([tenantId])
+  @@map("attendance_snapshots")
+}
+
+model RankingHistory {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  studentId      String   @map("student_id") @db.Uuid
+  testId         String   @map("test_id") @db.Uuid
+  batchRank      Int      @map("batch_rank")
+  instituteRank  Int?     @map("institute_rank")
+  percentile     Decimal? @db.Decimal(5, 2)
+  testDate       DateTime @map("test_date") @db.Date
+  computedAt     DateTime @default(now()) @map("computed_at")
+
+  @@unique([studentId, testId])
+  @@index([tenantId])
+  @@index([studentId])
+  @@map("ranking_histories")
+}
+
+model RevenueHistory {
+  id             String   @id @default(uuid()) @db.Uuid
+  tenantId       String   @map("tenant_id") @db.Uuid
+  month          Int
+  year           Int
+  amount         Decimal  @db.Decimal(12, 2)
+  forecastAmount Decimal? @map("forecast_amount") @db.Decimal(12, 2)
+  computedAt     DateTime @default(now()) @map("computed_at")
+
+  @@unique([tenantId, month, year])
+  @@index([tenantId])
+  @@map("revenue_histories")
+}
+
+model AuditLogAnalytics {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  details    Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@map("audit_log_analytics")
 }

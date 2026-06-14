@@ -36,6 +36,7 @@ import { NoticesModule } from './modules/notices/notices.module';
 import { AnnouncementsModule } from './modules/announcements/announcements.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { CommunicationModule } from './modules/communication/communication.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -99,6 +100,7 @@ import { CommunicationModule } from './modules/communication/communication.modul
     AnnouncementsModule,
     DocumentsModule,
     CommunicationModule,
+    AnalyticsModule,
   ],
   providers: [
     {
