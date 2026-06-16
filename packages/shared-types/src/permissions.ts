@@ -6,6 +6,8 @@
 export enum Permission {
   // Tenant
   TENANT_MANAGE = 'tenant:manage',
+  FRANCHISE_VIEW = 'franchise:view',
+  BRANCH_MANAGE = 'branch:manage',
 
   // Users
   USER_READ = 'user:read',
@@ -126,6 +128,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   [UserRole.SUPER_ADMIN]: Object.values(Permission), // Full access
 
   [UserRole.ADMIN]: [
+    Permission.FRANCHISE_VIEW,
+    Permission.BRANCH_MANAGE,
     Permission.USER_READ,
     Permission.USER_WRITE,
     Permission.USER_DELETE,

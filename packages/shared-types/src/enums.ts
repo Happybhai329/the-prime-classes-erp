@@ -22,6 +22,30 @@ export enum TenantPlan {
   ENTERPRISE = 'ENTERPRISE',
 }
 
+export enum SubscriptionStatus {
+  ACTIVE = 'ACTIVE',
+  EXPIRED = 'EXPIRED',
+  TRIAL = 'TRIAL',
+  PAST_DUE = 'PAST_DUE',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum SaaSInvoiceStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  VOID = 'VOID',
+}
+
+export enum FeatureKey {
+  LMS = 'LMS',
+  MOBILE_APPS = 'MOBILE_APPS',
+  AI_ANALYTICS = 'AI_ANALYTICS',
+  ONLINE_TESTING = 'ONLINE_TESTING',
+  PARENT_PORTAL = 'PARENT_PORTAL',
+  ADVANCED_REPORTS = 'ADVANCED_REPORTS',
+}
+
 // ---- Student ----
 
 export enum Gender {

@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { TenantMiddleware } from './common/middleware/tenant.middleware';
 
 // Core modules
 import { DatabaseModule } from './database/database.module';
@@ -37,6 +38,9 @@ import { AnnouncementsModule } from './modules/announcements/announcements.modul
 import { DocumentsModule } from './modules/documents/documents.module';
 import { CommunicationModule } from './modules/communication/communication.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { SuperAdminModule } from './modules/super-admin/super-admin.module';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
+import { FranchiseModule } from './modules/franchise/franchise.module';
 
 @Module({
   imports: [
@@ -101,6 +105,9 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     DocumentsModule,
     CommunicationModule,
     AnalyticsModule,
+    SuperAdminModule,
+    OnboardingModule,
+    FranchiseModule,
   ],
   providers: [
     {
@@ -109,4 +116,10 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TenantMiddleware)
+      .forRoutes('*');
+  }
+}

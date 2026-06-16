@@ -1157,3 +1157,119 @@ export interface MobileApiEnvelope<T = unknown> {
   message: string;
   timestamp: string;
 }
+
+// ============================================================
+// Phase 8 — Multi-Tenant SaaS & Franchise Management DTOs
+// ============================================================
+
+export interface RegisterTenantRequest {
+  name: string;
+  slug: string;
+  ownerEmail: string;
+}
+
+export interface VerifyEmailRequest {
+  email: string;
+  token: string;
+}
+
+export interface CreateAdminRequest {
+  tenantId: string;
+  email: string;
+  phone?: string;
+  password?: string;
+}
+
+export interface ProvisionTenantRequest {
+  tenantId: string;
+  adminEmail: string;
+  adminPhone?: string;
+  adminPassword?: string;
+  planId: string;
+  customDomain?: string;
+}
+
+export interface SaaSPlanSummary {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  price: number;
+  billingCycle: string;
+  isActive: boolean;
+  featureFlags: Record<string, boolean>;
+}
+
+export interface SubscriptionDetail {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  tenantSlug: string;
+  planId: string;
+  planName: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  renewalDate: string | null;
+}
+
+export interface SaaSInvoiceSummary {
+  id: string;
+  invoiceNumber: string;
+  tenantName: string;
+  planName: string;
+  amount: number;
+  status: string;
+  dueDate: string;
+  paidAt: string | null;
+}
+
+export interface BrandingSettings {
+  logoUrl?: string | null;
+  primaryColor?: string;
+  secondaryColor?: string;
+  sidebarBg?: string;
+  tagline?: string;
+  emailBranding?: {
+    senderName?: string;
+    senderEmail?: string;
+    footerText?: string;
+  };
+  pdfBranding?: {
+    headerLogo?: string;
+    footerText?: string;
+    showWatermark?: boolean;
+  };
+}
+
+export interface FranchiseReportSummary {
+  organizationId: string;
+  organizationName: string;
+  totalStudents: number;
+  totalRevenue: number;
+  branchPerformance: {
+    branchId: string;
+    branchName: string;
+    branchCode: string;
+    studentCount: number;
+    revenue: number;
+    activeUsersCount: number;
+  }[];
+  facultyCount: number;
+  enrollmentTrends: {
+    month: string;
+    studentCount: number;
+  }[];
+}
+
+export interface TenantUsageSummary {
+  tenantId: string;
+  tenantName: string;
+  tenantSlug: string;
+  planName: string;
+  activeUsers: number;
+  storageUsageBytes: number;
+  apiCallsCount: number;
+  healthScore: number;
+}
+

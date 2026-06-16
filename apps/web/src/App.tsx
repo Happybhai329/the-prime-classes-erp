@@ -6,6 +6,13 @@ import { AppShell } from './components/layout/AppShell';
 // Auth Pages
 import { LoginPage } from './pages/auth/LoginPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { OnboardingWizard } from './pages/auth/OnboardingWizard';
+
+// Super Admin & Franchise Settings (Phase 8)
+import { SuperAdminDashboard } from './pages/super-admin/SuperAdminDashboard';
+import { HeadOfficeDashboard } from './pages/franchise/HeadOfficeDashboard';
+import { BrandingSettingsPage } from './pages/settings/BrandingSettingsPage';
+import { useAuthStore } from './store/auth.store';
 
 // Dashboard
 import { DashboardPage } from './pages/dashboard/DashboardPage';
@@ -90,11 +97,14 @@ const PlaceholderPage = ({ title }: { title: string }) => (
 
 
 function App() {
+  const user = useAuthStore((s) => s.user);
+
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/onboarding" element={<OnboardingWizard />} />
 
       {/* Protected App Routes */}
       <Route
@@ -184,7 +194,20 @@ function App() {
           <Route path="refunds" element={<RefundsPage />} />
           <Route path="reports" element={<FeeReportsPage />} />
         </Route>
-        <Route path="settings" element={<PlaceholderPage title="System Settings" />} />
+        {/* SaaS & Franchise (Phase 8) */}
+        <Route
+          path="super-admin"
+          element={
+            user?.role === 'SUPER_ADMIN' ? (
+              <SuperAdminDashboard />
+            ) : (
+              <Navigate to="/dashboard" replace />
+            )
+          }
+        />
+        <Route path="franchise" element={<HeadOfficeDashboard />} />
+        <Route path="settings/branding" element={<BrandingSettingsPage />} />
+        <Route path="settings" element={<BrandingSettingsPage />} />
         
         {/* Catch-all 404 inside AppShell */}
         <Route path="*" element={

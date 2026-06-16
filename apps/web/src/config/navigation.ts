@@ -237,4 +237,21 @@ export const sidebarNavigation: NavSection[] = [
       },
     ],
   },
+  {
+    title: 'SaaS & Franchise',
+    items: [
+      {
+        label: 'Head Office Portal',
+        path: '/franchise',
+        icon: Layers,
+        permissions: [Permission.FRANCHISE_VIEW],
+      },
+      {
+        label: 'Super Admin Portal',
+        path: '/super-admin',
+        icon: ShieldCheck,
+        permissions: [Permission.TENANT_MANAGE],
+      },
+    ],
+  },
 ];

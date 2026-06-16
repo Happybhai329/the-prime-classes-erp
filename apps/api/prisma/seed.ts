@@ -306,6 +306,154 @@ async function main() {
 
   console.log(`✅ ${sampleStudents.length} students + parents created and enrolled`);
 
+  // ---- Create SaaS Plans ----
+  console.log('🌱 Seeding SaaS Plans and Feature Flags...');
+  const plansData = [
+    {
+      name: 'Starter Plan',
+      slug: 'starter',
+      price: 999.00,
+      features: { LMS: false, MOBILE_APPS: false, AI_ANALYTICS: false, ONLINE_TESTING: true, PARENT_PORTAL: true, ADVANCED_REPORTS: false }
+    },
+    {
+      name: 'Professional Plan',
+      slug: 'professional',
+      price: 2999.00,
+      features: { LMS: true, MOBILE_APPS: false, AI_ANALYTICS: false, ONLINE_TESTING: true, PARENT_PORTAL: true, ADVANCED_REPORTS: true }
+    },
+    {
+      name: 'Enterprise Plan',
+      slug: 'enterprise',
+      price: 5999.00,
+      features: { LMS: true, MOBILE_APPS: true, AI_ANALYTICS: true, ONLINE_TESTING: true, PARENT_PORTAL: true, ADVANCED_REPORTS: true }
+    },
+    {
+      name: 'Franchise Plan',
+      slug: 'franchise',
+      price: 9999.00,
+      features: { LMS: true, MOBILE_APPS: true, AI_ANALYTICS: true, ONLINE_TESTING: true, PARENT_PORTAL: true, ADVANCED_REPORTS: true }
+    }
+  ];
+
+  for (const p of plansData) {
+    const plan = await prisma.plan.upsert({
+      where: { slug: p.slug },
+      update: { price: p.price },
+      create: {
+        name: p.name,
+        slug: p.slug,
+        price: p.price,
+      }
+    });
+
+    for (const [key, enabled] of Object.entries(p.features)) {
+      await prisma.featureFlag.upsert({
+        where: { planId_featureKey: { planId: plan.id, featureKey: key } },
+        update: { isEnabled: enabled },
+        create: {
+          planId: plan.id,
+          featureKey: key,
+          isEnabled: enabled
+        }
+      });
+    }
+  }
+
+  // Create Active Subscription for main Tenant
+  const profPlan = await prisma.plan.findUnique({ where: { slug: 'franchise' } });
+  if (profPlan) {
+    await prisma.subscription.create({
+      data: {
+        tenantId: tenant.id,
+        planId: profPlan.id,
+        status: 'ACTIVE',
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      }
+    });
+  }
+
+  // ---- Create Franchise Organization & Branches ----
+  console.log('🌱 Seeding Franchise Organization and Branches...');
+  const org = await prisma.organization.upsert({
+    where: { slug: 'the-prime-classes-group' },
+    update: {},
+    create: {
+      name: 'The Prime Classes Group',
+      slug: 'the-prime-classes-group',
+      isActive: true,
+      settings: { headOfficeTenantId: tenant.id }
+    }
+  });
+
+  // Bind main tenant as Branch A
+  await prisma.branch.upsert({
+    where: { tenantId: tenant.id },
+    update: {},
+    create: {
+      organizationId: org.id,
+      tenantId: tenant.id,
+      name: 'Jaipur Main Branch',
+      code: 'JPR-01',
+      isActive: true
+    }
+  });
+
+  // Seed second Tenant (Branch B)
+  const tenantB = await prisma.tenant.upsert({
+    where: { slug: 'the-prime-classes-delhi' },
+    update: {},
+    create: {
+      name: 'The Prime Classes Delhi',
+      slug: 'the-prime-classes-delhi',
+      plan: TenantPlan.PRO,
+      customDomain: 'delhi.primeclasses.in',
+      domainVerified: true,
+      dnsConfigured: true,
+      brandColors: { primary: '#2b6cb0', secondary: '#319795' }
+    }
+  });
+
+  if (profPlan) {
+    await prisma.subscription.create({
+      data: {
+        tenantId: tenantB.id,
+        planId: profPlan.id,
+        status: 'ACTIVE',
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      }
+    });
+  }
+
+  await prisma.branch.upsert({
+    where: { tenantId: tenantB.id },
+    update: {},
+    create: {
+      organizationId: org.id,
+      tenantId: tenantB.id,
+      name: 'Delhi NCR Branch',
+      code: 'DLH-02',
+      isActive: true
+    }
+  });
+
+  // Create Delhi branch admin
+  await prisma.user.upsert({
+    where: { tenantId_email: { tenantId: tenantB.id, email: 'delhiadmin@primeclasses.in' } },
+    update: {},
+    create: {
+      tenantId: tenantB.id,
+      email: 'delhiadmin@primeclasses.in',
+      phone: '9555555555',
+      passwordHash: defaultPassword,
+      role: UserRole.ADMIN,
+      isActive: true
+    }
+  });
+
+  console.log(`✅ Delhi branch created and linked.`);
+
   // ---- Summary ----
   console.log('\n📊 Seed Summary:');
   console.log(`   Tenant: ${tenant.name}`);
@@ -315,6 +463,9 @@ async function main() {
   console.log(`   Faculty: ${await prisma.faculty.count()}`);
   console.log(`   Subjects: ${await prisma.subject.count()}`);
   console.log(`   Batches: ${await prisma.batch.count()}`);
+  console.log(`   Plans: ${await prisma.plan.count()}`);
+  console.log(`   Organizations: ${await prisma.organization.count()}`);
+  console.log(`   Branches: ${await prisma.branch.count()}`);
   console.log('\n🔑 Default Credentials:');
   console.log('   All accounts: Password = Prime@2025');
   console.log('   Super Admin:  superadmin@primeclasses.in');
@@ -323,6 +474,7 @@ async function main() {
   console.log('   Accountant:   accountant@primeclasses.in');
   console.log('   Student:      arjun.sharma@student.primeclasses.in');
   console.log('   Parent:       vikram.sharma@parent.primeclasses.in');
+  console.log('   Delhi Admin:  delhiadmin@primeclasses.in');
 }
 
 main()
