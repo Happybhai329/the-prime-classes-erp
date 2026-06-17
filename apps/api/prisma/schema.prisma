@@ -78,6 +78,14 @@ model Tenant {
   saasInvoices       SaaSInvoice[]
   branch             Branch?
 
+  // Phase 9
+  counselors           Counselor[]
+  leads                Lead[]
+  admissionApplications AdmissionApplication[]
+  campaigns            Campaign[]
+  events               Event[]
+  website              TenantWebsite?
+
   @@map("tenants")
 }
 
@@ -138,6 +146,11 @@ model User {
   assignmentsCreated Assignment[]      @relation("AssignmentCreatedBy")
   submissionsReviewed AssignmentSubmission[] @relation("AssignmentSubmissionReviewedBy")
 
+  // Phase 9
+  counselor          Counselor?
+  verifiedDocuments  DocumentVerification[] @relation("DocumentVerifiedBy")
+  leadActivities     LeadActivity[]         @relation("LeadActivityCreatedBy")
+
   @@unique([tenantId, email])
   @@index([tenantId])
   @@index([role])
@@ -193,6 +206,9 @@ model Student {
   studentFees     StudentFee[]
   // Phase 3
   uploadedDocuments Document[]
+
+  // Phase 9
+  admissionApplications AdmissionApplication[]
 
   // Phase 5
   points             Int               @default(0)
@@ -1830,3 +1846,290 @@ model Branch {
   @@unique([organizationId, code])
   @@map("branches")
 }
+
+// ============================================================
+// PHASE 9 — PUBLIC PORTAL, CRM & MARKETING AUTOMATION
+// ============================================================
+
+model Counselor {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leads     Lead[]
+
+  @@index([tenantId])
+  @@map("counselors")
+}
+
+model Lead {
+  id                  String               @id @default(uuid()) @db.Uuid
+  tenantId            String               @map("tenant_id") @db.Uuid
+  firstName           String               @map("first_name") @db.VarChar(100)
+  lastName            String               @map("last_name") @db.VarChar(100)
+  email               String?              @db.VarChar(255)
+  phone               String?              @db.VarChar(20)
+  source              LeadSource           @default(WEBSITE_FORM)
+  status              LeadStatus           @default(INQUIRY)
+  assignedCounselorId String?              @map("assigned_counselor_id") @db.Uuid
+  score               Decimal              @default(0.0) @db.Decimal(5, 2)
+  notes               String?              @db.Text
+  metaData            Json                 @default("{}") @map("metadata")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+
+  // Relations
+  tenant             Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  counselor          Counselor?            @relation(fields: [assignedCounselorId], references: [id], onDelete: SetNull)
+  activities         LeadActivity[]
+  applications       AdmissionApplication[]
+  eventRegistrations EventRegistration[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([assignedCounselorId])
+  @@map("leads")
+}
+
+enum LeadSource {
+  WEBSITE_FORM
+  GOOGLE_ADS
+  FACEBOOK_ADS
+  WHATSAPP
+  MANUAL
+}
+
+enum LeadStatus {
+  INQUIRY
+  COUNSELING
+  DOCUMENT_COLLECTION
+  FEE_PAYMENT
+  ADMISSION_CONFIRMED
+  REJECTED
+}
+
+model LeadActivity {
+  id          String           @id @default(uuid()) @db.Uuid
+  leadId      String           @map("lead_id") @db.Uuid
+  activityType LeadActivityType
+  description String           @db.Text
+  scheduledAt DateTime?        @map("scheduled_at")
+  isCompleted Boolean          @default(false) @map("is_completed")
+  createdById String?          @map("created_by_id") @db.Uuid
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  // Relations
+  lead        Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  createdBy   User?            @relation("LeadActivityCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([leadId])
+  @@map("lead_activities")
+}
+
+enum LeadActivityType {
+  CALL
+  EMAIL
+  WHATSAPP
+  NOTE
+  STATUS_CHANGE
+  FOLLOW_UP_SCHEDULED
+}
+
+model AdmissionApplication {
+  id                String            @id @default(uuid()) @db.Uuid
+  tenantId          String            @map("tenant_id") @db.Uuid
+  leadId            String?           @map("lead_id") @db.Uuid
+  studentId         String?           @map("student_id") @db.Uuid
+  applicationNumber String            @unique @map("application_number") @db.VarChar(50)
+  firstName         String            @map("first_name") @db.VarChar(100)
+  lastName          String            @map("last_name") @db.VarChar(100)
+  email             String            @db.VarChar(255)
+  phone             String            @db.VarChar(20)
+  dob               DateTime          @db.Date
+  gender            Gender
+  classApplyingFor  String            @map("class_applying_for") @db.VarChar(50)
+  status            ApplicationStatus @default(DRAFT)
+  paymentStatus     PaymentStatus     @default(PENDING) @map("payment_status")
+  paymentAmount     Decimal?          @map("payment_amount") @db.Decimal(10, 2)
+  paymentDetails    Json              @default("{}") @map("payment_details")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  tenant               Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  lead                 Lead?                  @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  student              Student?               @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  documentVerifications DocumentVerification[]
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("admission_applications")
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  VERIFIED
+  APPROVED
+  REJECTED
+  ENROLLED
+}
+
+model DocumentVerification {
+  id             String                     @id @default(uuid()) @db.Uuid
+  applicationId  String                     @map("application_id") @db.Uuid
+  documentType   String                     @map("document_type") @db.VarChar(50) // "PHOTO", "AADHAAR", "BIRTH_CERTIFICATE", "MARKSHEET", "TRANSFER_CERTIFICATE"
+  documentUrl    String                     @map("document_url") @db.VarChar(500)
+  status         DocumentVerificationStatus @default(PENDING)
+  rejectionReason String?                    @map("rejection_reason") @db.Text
+  verifiedById   String?                    @map("verified_by_id") @db.Uuid
+  verifiedAt     DateTime?                  @map("verified_at")
+  createdAt      DateTime                   @default(now()) @map("created_at")
+  updatedAt      DateTime                   @updatedAt @map("updated_at")
+
+  // Relations
+  application    AdmissionApplication       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  verifiedBy     User?                      @relation("DocumentVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+
+  @@index([applicationId])
+  @@map("document_verifications")
+}
+
+enum DocumentVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model Campaign {
+  id           String          @id @default(uuid()) @db.Uuid
+  tenantId     String          @map("tenant_id") @db.Uuid
+  name         String          @db.VarChar(255)
+  type         CampaignType
+  channel      CampaignChannel
+  status       CampaignStatus  @default(DRAFT)
+  templateBody String          @map("template_body") @db.Text
+  subject      String?         @db.VarChar(255)
+  scheduledAt  DateTime?       @map("scheduled_at")
+  sentAt       DateTime?       @map("sent_at")
+  metrics      Json            @default("{}")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  tenant       Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("campaigns")
+}
+
+enum CampaignType {
+  ADMISSION
+  SCHOLARSHIP
+  EVENT
+}
+
+enum CampaignChannel {
+  EMAIL
+  WHATSAPP
+  PUSH
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+}
+
+model Event {
+  id                String       @id @default(uuid()) @db.Uuid
+  tenantId          String       @map("tenant_id") @db.Uuid
+  title             String       @db.VarChar(255)
+  description       String?      @db.Text
+  type              EventType
+  startDate         DateTime     @map("start_date")
+  endDate           DateTime     @map("end_date")
+  location          String?      @db.VarChar(255)
+  maxRegistrations  Int?         @map("max_registrations")
+  registrationFee   Decimal      @default(0.0) @map("registration_fee") @db.Decimal(10, 2)
+  admitCardTemplate String?      @map("admit_card_template") @db.Text
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  tenant            Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  registrations     EventRegistration[]
+
+  @@index([tenantId])
+  @@map("events")
+}
+
+enum EventType {
+  SEMINAR
+  PARENT_MEETING
+  SCHOLARSHIP_TEST
+  ADMISSION_DRIVE
+}
+
+model EventRegistration {
+  id               String        @id @default(uuid()) @db.Uuid
+  eventId          String        @map("event_id") @db.Uuid
+  leadId           String?       @map("lead_id") @db.Uuid
+  firstName        String        @map("first_name") @db.VarChar(100)
+  lastName         String        @map("last_name") @db.VarChar(100)
+  email            String        @db.VarChar(255)
+  phone            String        @db.VarChar(20)
+  rollNumber       String?       @unique @map("roll_number") @db.VarChar(50) // For scholarship test / admit card
+  seatNumber       String?       @map("seat_number") @db.VarChar(50)
+  paymentStatus    PaymentStatus @default(PENDING) @map("payment_status")
+  paymentAmount    Decimal?      @map("payment_amount") @db.Decimal(10, 2)
+  paymentDetails   Json          @default("{}") @map("payment_details")
+  attendanceStatus Boolean       @default(false) @map("attendance_status")
+  feedback         String?       @db.Text
+  rating           Int?
+  scoreObtained    Decimal?      @map("score_obtained") @db.Decimal(5, 2) // For scholarship test
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  event            Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  lead             Lead?         @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([leadId])
+  @@map("event_registrations")
+}
+
+model TenantWebsite {
+  id          String   @id @default(uuid()) @db.Uuid
+  tenantId    String   @unique @map("tenant_id") @db.Uuid
+  branding    Json     @default("{}")
+  landingPage Json     @default("{}") @map("landing_page")
+  courses     Json     @default("[]")
+  results     Json     @default("[]")
+  faculty     Json     @default("[]")
+  contact     Json     @default("{}")
+  seo         Json     @default("{}")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_websites")
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+

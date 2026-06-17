@@ -116,6 +116,24 @@ export enum Permission {
   ONLINE_TEST_TAKE = 'online-test:take',
   QUESTION_BANK_MANAGE = 'question-bank:manage',
   ACHIEVEMENT_MANAGE = 'achievement:manage',
+
+  // Phase 9
+  LEAD_READ = 'lead:read',
+  LEAD_WRITE = 'lead:write',
+  LEAD_DELETE = 'lead:delete',
+  LEAD_ASSIGN = 'lead:assign',
+  COUNSELOR_MANAGE = 'counselor:manage',
+  COUNSELOR_DASHBOARD_VIEW = 'counselor:dashboard:view',
+  ADMISSION_APP_VIEW = 'admission:app:view',
+  ADMISSION_APP_EDIT = 'admission:app:edit',
+  ADMISSION_APP_VERIFY = 'admission:app:verify',
+  ADMISSION_APP_ENROLL = 'admission:app:enroll',
+  CAMPAIGN_MANAGE = 'campaign:manage',
+  CAMPAIGN_VIEW = 'campaign:view',
+  EVENT_MANAGE = 'event:manage',
+  EVENT_REGISTER = 'event:register',
+  EVENT_SCORE = 'event:score',
+  WEBSITE_BUILDER_MANAGE = 'website:builder:manage',
 }
 
 import { UserRole } from './enums';
@@ -197,6 +215,24 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.ONLINE_TEST_TAKE,
     Permission.QUESTION_BANK_MANAGE,
     Permission.ACHIEVEMENT_MANAGE,
+
+    // Phase 9
+    Permission.LEAD_READ,
+    Permission.LEAD_WRITE,
+    Permission.LEAD_DELETE,
+    Permission.LEAD_ASSIGN,
+    Permission.COUNSELOR_MANAGE,
+    Permission.COUNSELOR_DASHBOARD_VIEW,
+    Permission.ADMISSION_APP_VIEW,
+    Permission.ADMISSION_APP_EDIT,
+    Permission.ADMISSION_APP_VERIFY,
+    Permission.ADMISSION_APP_ENROLL,
+    Permission.CAMPAIGN_MANAGE,
+    Permission.CAMPAIGN_VIEW,
+    Permission.EVENT_MANAGE,
+    Permission.EVENT_REGISTER,
+    Permission.EVENT_SCORE,
+    Permission.WEBSITE_BUILDER_MANAGE,
   ],
 
   [UserRole.FACULTY]: [
@@ -230,6 +266,16 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.ASSIGNMENT_REVIEW,
     Permission.ONLINE_TEST_MANAGE,
     Permission.QUESTION_BANK_MANAGE,
+
+    // Phase 9
+    Permission.LEAD_READ,
+    Permission.LEAD_WRITE,
+    Permission.COUNSELOR_DASHBOARD_VIEW,
+    Permission.ADMISSION_APP_VIEW,
+    Permission.ADMISSION_APP_EDIT,
+    Permission.EVENT_MANAGE,
+    Permission.EVENT_REGISTER,
+    Permission.EVENT_SCORE,
   ],
 
   [UserRole.STUDENT]: [

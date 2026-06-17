@@ -42,6 +42,13 @@ import { SuperAdminModule } from './modules/super-admin/super-admin.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { FranchiseModule } from './modules/franchise/franchise.module';
 
+// Phase 9 Modules
+import { WebsiteModule } from './modules/website/website.module';
+import { CrmModule } from './modules/crm/crm.module';
+import { AdmissionsModule } from './modules/admissions/admissions.module';
+import { EventsModule } from './modules/events/events.module';
+import { CampaignsModule } from './modules/campaigns/campaigns.module';
+
 @Module({
   imports: [
     // Configuration
@@ -108,6 +115,13 @@ import { FranchiseModule } from './modules/franchise/franchise.module';
     SuperAdminModule,
     OnboardingModule,
     FranchiseModule,
+
+    // Phase 9 Modules
+    WebsiteModule,
+    CrmModule,
+    AdmissionsModule,
+    EventsModule,
+    CampaignsModule,
   ],
   providers: [
     {

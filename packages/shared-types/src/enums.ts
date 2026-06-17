@@ -323,3 +323,78 @@ export enum VideoProvider {
   AWS_MEDIACONVERT = 'AWS_MEDIACONVERT',
   M3U8 = 'M3U8',
 }
+
+// ---- CRM, Admissions & Marketing Automation (Phase 9) ----
+
+export enum LeadSource {
+  WEBSITE_FORM = 'WEBSITE_FORM',
+  GOOGLE_ADS = 'GOOGLE_ADS',
+  FACEBOOK_ADS = 'FACEBOOK_ADS',
+  WHATSAPP = 'WHATSAPP',
+  MANUAL = 'MANUAL',
+}
+
+export enum LeadStatus {
+  INQUIRY = 'INQUIRY',
+  COUNSELING = 'COUNSELING',
+  DOCUMENT_COLLECTION = 'DOCUMENT_COLLECTION',
+  FEE_PAYMENT = 'FEE_PAYMENT',
+  ADMISSION_CONFIRMED = 'ADMISSION_CONFIRMED',
+  REJECTED = 'REJECTED',
+}
+
+export enum ApplicationStatus {
+  DRAFT = 'DRAFT',
+  SUBMITTED = 'SUBMITTED',
+  VERIFIED = 'VERIFIED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  ENROLLED = 'ENROLLED',
+}
+
+export enum DocumentVerificationStatus {
+  PENDING = 'PENDING',
+  VERIFIED = 'VERIFIED',
+  REJECTED = 'REJECTED',
+}
+
+export enum CampaignType {
+  ADMISSION = 'ADMISSION',
+  SCHOLARSHIP = 'SCHOLARSHIP',
+  EVENT = 'EVENT',
+}
+
+export enum CampaignChannel {
+  EMAIL = 'EMAIL',
+  WHATSAPP = 'WHATSAPP',
+  PUSH = 'PUSH',
+}
+
+export enum CampaignStatus {
+  DRAFT = 'DRAFT',
+  SCHEDULED = 'SCHEDULED',
+  ACTIVE = 'ACTIVE',
+  COMPLETED = 'COMPLETED',
+}
+
+export enum EventType {
+  SEMINAR = 'SEMINAR',
+  PARENT_MEETING = 'PARENT_MEETING',
+  SCHOLARSHIP_TEST = 'SCHOLARSHIP_TEST',
+  ADMISSION_DRIVE = 'ADMISSION_DRIVE',
+}
+
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  FAILED = 'FAILED',
+}
+
+export enum LeadActivityType {
+  CALL = 'CALL',
+  EMAIL = 'EMAIL',
+  WHATSAPP = 'WHATSAPP',
+  NOTE = 'NOTE',
+  STATUS_CHANGE = 'STATUS_CHANGE',
+  FOLLOW_UP_SCHEDULED = 'FOLLOW_UP_SCHEDULED',
+}

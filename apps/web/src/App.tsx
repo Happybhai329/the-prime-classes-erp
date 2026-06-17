@@ -8,6 +8,13 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { OnboardingWizard } from './pages/auth/OnboardingWizard';
 
+// Phase 9 Pages
+import { CrmDashboard } from './pages/crm/CrmDashboard';
+import { CounselorDashboard } from './pages/crm/CounselorDashboard';
+import { CampaignManager } from './pages/crm/CampaignManager';
+import { WebsiteBuilder } from './pages/crm/WebsiteBuilder';
+import { PublicLandingPage } from './pages/public/PublicLandingPage';
+
 // Super Admin & Franchise Settings (Phase 8)
 import { SuperAdminDashboard } from './pages/super-admin/SuperAdminDashboard';
 import { HeadOfficeDashboard } from './pages/franchise/HeadOfficeDashboard';
@@ -102,6 +109,7 @@ function App() {
   return (
     <Routes>
       {/* Public Routes */}
+      <Route path="/public-site" element={<PublicLandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/onboarding" element={<OnboardingWizard />} />
@@ -179,6 +187,14 @@ function App() {
         <Route path="online-tests/exam/:testId" element={<OnlineExamPage />} />
         <Route path="question-bank" element={<QuestionBankPage />} />
         <Route path="leaderboard" element={<LeaderboardPage />} />
+
+        {/* Phase 9 CRM & Admissions Routes */}
+        <Route path="crm">
+          <Route path="dashboard" element={<CrmDashboard />} />
+          <Route path="counselor" element={<CounselorDashboard />} />
+          <Route path="campaigns" element={<CampaignManager />} />
+          <Route path="website-builder" element={<WebsiteBuilder />} />
+        </Route>
 
         {/* Stubs for Phase 3 */}
         <Route path="faculty" element={<PlaceholderPage title="Faculty Management" />} />
