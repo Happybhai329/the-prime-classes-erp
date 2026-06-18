@@ -14,6 +14,7 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { Public, CurrentUser } from '../../common/decorators';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -21,6 +22,11 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @Throttle({
+    short: { limit: 1, ttl: 1000 },
+    medium: { limit: 3, ttl: 10000 },
+    long: { limit: 5, ttl: 60000 },
+  })
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
@@ -29,6 +35,11 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({
+    short: { limit: 1, ttl: 1000 },
+    medium: { limit: 3, ttl: 10000 },
+    long: { limit: 5, ttl: 60000 },
+  })
   @Post('forgot-password')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request password reset OTP' })

@@ -13,6 +13,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { SecretCipherService } from '../api-platform/secret-cipher.service';
+import { MailService } from './mail.service';
 
 export interface JwtPayload {
   sub: string; // user id
@@ -30,6 +31,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly cipher: SecretCipherService,
+    private readonly mailService: MailService,
   ) {}
 
   /**
@@ -286,7 +288,7 @@ export class AuthService {
 
   private async generateRefreshToken(payload: JwtPayload): Promise<string> {
     const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      secret: this.configService.getOrThrow<string>('JWT_REFRESH_SECRET'),
       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRY', '7d'),
     });
 
@@ -325,9 +327,11 @@ export class AuthService {
 
     this.logger.log(`[PASSWORD RESET SYSTEM] Generated OTP for user ${user.email}: ${otp}`);
 
+    // Send OTP via SMTP
+    await this.mailService.sendPasswordResetOtpEmail(user.email, otp);
+
     return {
       message: 'Password reset OTP has been generated successfully',
-      token: otp, // Returned for dev testing ease
     };
   }
 }

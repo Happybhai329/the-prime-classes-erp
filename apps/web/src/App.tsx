@@ -92,15 +92,13 @@ import { StudentAnalyticsPage } from './pages/reports/StudentAnalyticsPage';
 import { PredictionDashboard } from './pages/analytics/PredictionDashboard';
 import { FacultyInsights } from './pages/analytics/FacultyInsights';
 
-// Placeholder for unbuilt modules
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="flex items-center justify-center h-96">
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-      <p className="text-gray-500">This module is under development (Phase 3).</p>
-    </div>
-  </div>
-);
+// Faculty, Users, and Subjects
+import { FacultyListPage } from './pages/faculty/FacultyListPage';
+import { FacultyDetailPage } from './pages/faculty/FacultyDetailPage';
+import { CreateFacultyPage } from './pages/faculty/CreateFacultyPage';
+import { EditFacultyPage } from './pages/faculty/EditFacultyPage';
+import { UsersPage } from './pages/users/UsersPage';
+import { SubjectsPage } from './pages/subjects/SubjectsPage';
 
 
 function App() {
@@ -196,8 +194,18 @@ function App() {
           <Route path="website-builder" element={<WebsiteBuilder />} />
         </Route>
 
-        {/* Stubs for Phase 3 */}
-        <Route path="faculty" element={<PlaceholderPage title="Faculty Management" />} />
+        {/* Faculty */}
+        <Route path="faculty" element={<FacultyListPage />} />
+        <Route path="faculty/create" element={<CreateFacultyPage />} />
+        <Route path="faculty/:id" element={<FacultyDetailPage />} />
+        <Route path="faculty/:id/edit" element={<EditFacultyPage />} />
+
+        {/* Users */}
+        <Route path="users" element={<UsersPage />} />
+
+        {/* Subjects */}
+        <Route path="subjects" element={<SubjectsPage />} />
+
         {/* Fees (Phase 4) */}
         <Route path="fees">
           <Route index element={<FeeDashboardPage />} />

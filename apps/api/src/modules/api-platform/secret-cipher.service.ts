@@ -13,9 +13,9 @@ export class SecretCipherService {
 
   constructor(config: ConfigService) {
     const secret =
+      config.get<string>('CIPHER_KEY') ||
       config.get<string>('API_SECRETS_ENCRYPTION_KEY') ||
-      config.get<string>('JWT_ACCESS_SECRET') ||
-      'prime-development-only-secret';
+      config.getOrThrow<string>('JWT_ACCESS_SECRET');
     this.key = createHash('sha256').update(secret).digest();
   }
 

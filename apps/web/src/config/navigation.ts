@@ -84,6 +84,12 @@ export const sidebarNavigation: NavSection[] = [
         icon: ClipboardList,
         permissions: [Permission.TEST_VIEW_ALL],
       },
+      {
+        label: 'Subjects',
+        path: '/subjects',
+        icon: Layers,
+        permissions: [Permission.SUBJECT_READ],
+      },
     ],
   },
   {
@@ -228,6 +234,12 @@ export const sidebarNavigation: NavSection[] = [
         path: '/audit',
         icon: ShieldCheck,
         permissions: [Permission.AUDIT_VIEW],
+      },
+      {
+        label: 'Users',
+        path: '/users',
+        icon: Users,
+        permissions: [Permission.USER_READ],
       },
       {
         label: 'Settings',
