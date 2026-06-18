@@ -17,12 +17,39 @@ export class CommunicationService {
 
   async createTicket(tenantId: string, userId: string, dto: CreateTicketDto) {
     return this.prisma.$transaction(async (tx) => {
+      const branch = await tx.branch.findUnique({
+        where: { tenantId },
+        select: { organizationId: true },
+      });
+      const priority = dto.priority || 'NORMAL';
+      const slaPolicy = branch
+        ? await tx.supportSlaPolicy.findFirst({
+            where: {
+              organizationId: branch.organizationId,
+              priority,
+              isActive: true,
+            },
+          })
+        : null;
+      const now = new Date();
+      const firstResponseDueAt = slaPolicy
+        ? new Date(now.getTime() + slaPolicy.firstResponseMinutes * 60_000)
+        : null;
+      const resolutionDueAt = slaPolicy
+        ? new Date(now.getTime() + slaPolicy.resolutionMinutes * 60_000)
+        : null;
+
       const ticket = await tx.supportTicket.create({
         data: {
           tenantId,
+          organizationId: branch?.organizationId || null,
+          slaPolicyId: slaPolicy?.id || null,
           subject: dto.subject,
           category: dto.category,
+          priority: priority as any,
           createdBy: userId,
+          firstResponseDueAt,
+          resolutionDueAt,
         },
       });
 
@@ -105,6 +132,7 @@ export class CommunicationService {
       id: ticket.id,
       subject: ticket.subject,
       category: ticket.category,
+      priority: ticket.priority,
       status: ticket.status,
       createdBy: ticket.createdBy,
       createdByName: ticket.creator.email,
@@ -116,6 +144,10 @@ export class CommunicationService {
       messageCount: ticket._count.messages,
       createdAt: ticket.createdAt.toISOString(),
       updatedAt: ticket.updatedAt.toISOString(),
+      firstResponseDueAt: ticket.firstResponseDueAt?.toISOString() || null,
+      resolutionDueAt: ticket.resolutionDueAt?.toISOString() || null,
+      firstRespondedAt: ticket.firstRespondedAt?.toISOString() || null,
+      escalatedAt: ticket.escalatedAt?.toISOString() || null,
       messages: ticket.messages.map((m) => ({
         id: m.id,
         ticketId: m.ticketId,
@@ -154,7 +186,10 @@ export class CommunicationService {
     if (ticket.status === 'OPEN' && ticket.createdBy !== userId) {
       await this.prisma.supportTicket.update({
         where: { id: ticketId },
-        data: { status: 'IN_PROGRESS' },
+        data: {
+          status: 'IN_PROGRESS',
+          firstRespondedAt: ticket.firstRespondedAt || new Date(),
+        },
       });
     }
 
@@ -234,6 +269,7 @@ export class CommunicationService {
         id: t.id,
         subject: t.subject,
         category: t.category,
+        priority: t.priority,
         status: t.status,
         createdBy: t.createdBy,
         createdByName: t.creator.email,
@@ -243,6 +279,9 @@ export class CommunicationService {
         messageCount: t._count.messages,
         createdAt: t.createdAt.toISOString(),
         updatedAt: t.updatedAt.toISOString(),
+        firstResponseDueAt: t.firstResponseDueAt?.toISOString() || null,
+        resolutionDueAt: t.resolutionDueAt?.toISOString() || null,
+        escalatedAt: t.escalatedAt?.toISOString() || null,
       })),
       meta: buildPaginationMeta(total, query.page || 1, query.limit || 20),
     };

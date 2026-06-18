@@ -84,6 +84,53 @@ export const sidebarNavigation: NavSection[] = [
         icon: ClipboardList,
         permissions: [Permission.TEST_VIEW_ALL],
       },
+      {
+        label: 'Subjects',
+        path: '/subjects',
+        icon: Layers,
+        permissions: [Permission.SUBJECT_READ],
+      },
+    ],
+  },
+  {
+    title: 'LMS & Testing',
+    items: [
+      {
+        label: 'Study Materials',
+        path: '/materials',
+        icon: FileText,
+        permissions: [Permission.MATERIAL_DOWNLOAD],
+      },
+      {
+        label: 'Digital Library',
+        path: '/library',
+        icon: GraduationCap,
+        permissions: [Permission.MATERIAL_DOWNLOAD],
+      },
+      {
+        label: 'Assignments',
+        path: '/assignments',
+        icon: ClipboardList,
+        permissions: [Permission.ASSIGNMENT_SUBMIT, Permission.ASSIGNMENT_CREATE],
+      },
+      {
+        label: 'Online Tests',
+        path: '/online-tests',
+        icon: ClipboardList,
+        permissions: [Permission.ONLINE_TEST_TAKE, Permission.ONLINE_TEST_MANAGE],
+      },
+      {
+        label: 'Question Bank',
+        path: '/question-bank',
+        icon: Layers,
+        permissions: [Permission.QUESTION_BANK_MANAGE],
+      },
+      {
+        label: 'Leaderboard',
+        path: '/leaderboard',
+        icon: BarChart3,
+        permissions: [],
+      },
     ],
   },
   {
@@ -189,10 +236,33 @@ export const sidebarNavigation: NavSection[] = [
         permissions: [Permission.AUDIT_VIEW],
       },
       {
+        label: 'Users',
+        path: '/users',
+        icon: Users,
+        permissions: [Permission.USER_READ],
+      },
+      {
         label: 'Settings',
         path: '/settings',
         icon: Settings,
         permissions: [], // All authenticated users
+      },
+    ],
+  },
+  {
+    title: 'SaaS & Franchise',
+    items: [
+      {
+        label: 'Head Office Portal',
+        path: '/franchise',
+        icon: Layers,
+        permissions: [Permission.FRANCHISE_VIEW],
+      },
+      {
+        label: 'Super Admin Portal',
+        path: '/super-admin',
+        icon: ShieldCheck,
+        permissions: [Permission.TENANT_MANAGE],
       },
     ],
   },

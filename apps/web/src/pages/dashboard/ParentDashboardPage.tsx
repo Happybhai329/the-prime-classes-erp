@@ -1,9 +1,12 @@
 import React from 'react';
 import { useParentDashboard } from '@/hooks/useDashboard';
 import { useParentLedgerReport } from '@/hooks/useFees';
+import { useStudentPrediction, useStudentRecommendations } from '@/hooks/useAnalytics';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
-import { Calendar, Award, BookOpen, AlertCircle, IndianRupee } from 'lucide-react';
+import { Calendar, Award, BookOpen, AlertCircle, IndianRupee, Brain, Download } from 'lucide-react';
+import api from '@/lib/api';
+import toast from 'react-hot-toast';
 
 export const ParentDashboardPage: React.FC = () => {
   const { data: dashboardData, isLoading } = useParentDashboard();
@@ -65,6 +68,9 @@ export const ParentDashboardPage: React.FC = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Parent AI Insights Integration */}
+                <ParentChildInsights studentId={child.studentId} />
 
                 {/* Parent Fee Integration */}
                 <ParentFeeSection studentId={child.studentId} />
@@ -171,6 +177,75 @@ const ParentFeeSection: React.FC<{ studentId: string }> = ({ studentId }) => {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+};
+
+const ParentChildInsights: React.FC<{ studentId: string }> = ({ studentId }) => {
+  const { data: prediction } = useStudentPrediction(studentId);
+  const { data: recommendations } = useStudentRecommendations(studentId);
+
+  if (!prediction || !recommendations) return null;
+
+  const result = prediction.data;
+  const recData = recommendations.data;
+
+  const handleDownloadPdf = async () => {
+    try {
+      toast.loading('Generating Report...');
+      const response = await api.get(`/analytics/student/${studentId}/report/pdf`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Student_AI_Report_${studentId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.dismiss();
+      toast.success('Downloaded successfully!');
+    } catch (err) {
+      toast.dismiss();
+      toast.error('Failed to download PDF report.');
+    }
+  };
+
+  return (
+    <div className="mt-6 border-t pt-6 space-y-4">
+      <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+        <Brain className="h-5 w-5 text-indigo-500" /> AI Progress Insights
+      </h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-indigo-50/50 border border-indigo-100 rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <span className="text-xs text-indigo-600 font-bold block uppercase tracking-wider">Exam Success Probability</span>
+            <span className="text-2xl font-display font-extrabold text-gray-900 mt-1 block">{result.successProbability}%</span>
+            <span className="text-xs text-gray-500 mt-0.5 block">Category: {result.category}</span>
+          </div>
+          <button
+            onClick={handleDownloadPdf}
+            className="btn btn-xs btn-primary inline-flex items-center gap-1"
+          >
+            <Download className="h-3.5 w-3.5" /> PDF Report
+          </button>
+        </div>
+
+        <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-4">
+          <span className="text-xs text-amber-600 font-bold block uppercase tracking-wider">Improvement Areas</span>
+          {recData?.weakTopics && recData.weakTopics.length > 0 ? (
+            <div className="mt-1 space-y-1">
+              {recData.weakTopics.slice(0, 2).map((wt: any, idx: number) => (
+                <p key={idx} className="text-xs text-gray-700">
+                  · Review <span className="font-semibold">{wt.topic}</span> ({wt.subjectName})
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-emerald-600 font-medium mt-1">Excellent performance across all topics!</p>
+          )}
+        </div>
       </div>
     </div>
   );

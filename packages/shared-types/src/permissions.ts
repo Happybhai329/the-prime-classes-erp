@@ -6,6 +6,8 @@
 export enum Permission {
   // Tenant
   TENANT_MANAGE = 'tenant:manage',
+  FRANCHISE_VIEW = 'franchise:view',
+  BRANCH_MANAGE = 'branch:manage',
 
   // Users
   USER_READ = 'user:read',
@@ -105,6 +107,46 @@ export enum Permission {
   DOCUMENT_VIEW_ALL = 'document:view:all',
   DOCUMENT_VIEW_OWN = 'document:view:own',
   DOCUMENT_DELETE = 'document:delete',
+
+  // Phase 5
+  ASSIGNMENT_CREATE = 'assignment:create',
+  ASSIGNMENT_SUBMIT = 'assignment:submit',
+  ASSIGNMENT_REVIEW = 'assignment:review',
+  ONLINE_TEST_MANAGE = 'online-test:manage',
+  ONLINE_TEST_TAKE = 'online-test:take',
+  QUESTION_BANK_MANAGE = 'question-bank:manage',
+  ACHIEVEMENT_MANAGE = 'achievement:manage',
+
+  // Phase 9
+  LEAD_READ = 'lead:read',
+  LEAD_WRITE = 'lead:write',
+  LEAD_DELETE = 'lead:delete',
+  LEAD_ASSIGN = 'lead:assign',
+  COUNSELOR_MANAGE = 'counselor:manage',
+  COUNSELOR_DASHBOARD_VIEW = 'counselor:dashboard:view',
+  ADMISSION_APP_VIEW = 'admission:app:view',
+  ADMISSION_APP_EDIT = 'admission:app:edit',
+  ADMISSION_APP_VERIFY = 'admission:app:verify',
+  ADMISSION_APP_ENROLL = 'admission:app:enroll',
+  CAMPAIGN_MANAGE = 'campaign:manage',
+  CAMPAIGN_VIEW = 'campaign:view',
+  EVENT_MANAGE = 'event:manage',
+  EVENT_REGISTER = 'event:register',
+  EVENT_SCORE = 'event:score',
+  WEBSITE_BUILDER_MANAGE = 'website:builder:manage',
+
+  // Phase 10 - Enterprise platform
+  ENTERPRISE_DASHBOARD_VIEW = 'enterprise:dashboard:view',
+  ORG_HIERARCHY_MANAGE = 'org:hierarchy:manage',
+  ORG_SCOPE_MANAGE = 'org:scope:manage',
+  FRANCHISE_BILLING_MANAGE = 'franchise:billing:manage',
+  PARTNER_PORTAL_VIEW = 'partner:portal:view',
+  RESOURCE_CENTER_MANAGE = 'resource:center:manage',
+  API_KEY_MANAGE = 'api:key:manage',
+  WEBHOOK_MANAGE = 'webhook:manage',
+  MARKETPLACE_INSTALL = 'marketplace:install',
+  ENTERPRISE_SECURITY_MANAGE = 'enterprise:security:manage',
+  OBSERVABILITY_VIEW = 'observability:view',
 }
 
 import { UserRole } from './enums';
@@ -117,6 +159,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   [UserRole.SUPER_ADMIN]: Object.values(Permission), // Full access
 
   [UserRole.ADMIN]: [
+    Permission.FRANCHISE_VIEW,
+    Permission.BRANCH_MANAGE,
     Permission.USER_READ,
     Permission.USER_WRITE,
     Permission.USER_DELETE,
@@ -176,6 +220,44 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.DOCUMENT_VIEW_ALL,
     Permission.DOCUMENT_VIEW_OWN,
     Permission.DOCUMENT_DELETE,
+    // Phase 5
+    Permission.ASSIGNMENT_CREATE,
+    Permission.ASSIGNMENT_SUBMIT,
+    Permission.ASSIGNMENT_REVIEW,
+    Permission.ONLINE_TEST_MANAGE,
+    Permission.ONLINE_TEST_TAKE,
+    Permission.QUESTION_BANK_MANAGE,
+    Permission.ACHIEVEMENT_MANAGE,
+
+    // Phase 9
+    Permission.LEAD_READ,
+    Permission.LEAD_WRITE,
+    Permission.LEAD_DELETE,
+    Permission.LEAD_ASSIGN,
+    Permission.COUNSELOR_MANAGE,
+    Permission.COUNSELOR_DASHBOARD_VIEW,
+    Permission.ADMISSION_APP_VIEW,
+    Permission.ADMISSION_APP_EDIT,
+    Permission.ADMISSION_APP_VERIFY,
+    Permission.ADMISSION_APP_ENROLL,
+    Permission.CAMPAIGN_MANAGE,
+    Permission.CAMPAIGN_VIEW,
+    Permission.EVENT_MANAGE,
+    Permission.EVENT_REGISTER,
+    Permission.EVENT_SCORE,
+    Permission.WEBSITE_BUILDER_MANAGE,
+    // Phase 10
+    Permission.ENTERPRISE_DASHBOARD_VIEW,
+    Permission.ORG_HIERARCHY_MANAGE,
+    Permission.ORG_SCOPE_MANAGE,
+    Permission.FRANCHISE_BILLING_MANAGE,
+    Permission.PARTNER_PORTAL_VIEW,
+    Permission.RESOURCE_CENTER_MANAGE,
+    Permission.API_KEY_MANAGE,
+    Permission.WEBHOOK_MANAGE,
+    Permission.MARKETPLACE_INSTALL,
+    Permission.ENTERPRISE_SECURITY_MANAGE,
+    Permission.OBSERVABILITY_VIEW,
   ],
 
   [UserRole.FACULTY]: [
@@ -204,6 +286,21 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.TICKET_RESPOND,
     Permission.DOCUMENT_UPLOAD,
     Permission.DOCUMENT_VIEW_ALL,
+    // Phase 5
+    Permission.ASSIGNMENT_CREATE,
+    Permission.ASSIGNMENT_REVIEW,
+    Permission.ONLINE_TEST_MANAGE,
+    Permission.QUESTION_BANK_MANAGE,
+
+    // Phase 9
+    Permission.LEAD_READ,
+    Permission.LEAD_WRITE,
+    Permission.COUNSELOR_DASHBOARD_VIEW,
+    Permission.ADMISSION_APP_VIEW,
+    Permission.ADMISSION_APP_EDIT,
+    Permission.EVENT_MANAGE,
+    Permission.EVENT_REGISTER,
+    Permission.EVENT_SCORE,
   ],
 
   [UserRole.STUDENT]: [
@@ -215,6 +312,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.MATERIAL_DOWNLOAD,
     Permission.NOTIFICATION_VIEW_OWN,
     Permission.REPORT_OWN,
+    // Phase 5
+    Permission.ASSIGNMENT_SUBMIT,
+    Permission.ONLINE_TEST_TAKE,
   ],
 
   [UserRole.PARENT]: [

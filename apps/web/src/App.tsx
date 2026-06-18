@@ -6,6 +6,20 @@ import { AppShell } from './components/layout/AppShell';
 // Auth Pages
 import { LoginPage } from './pages/auth/LoginPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { OnboardingWizard } from './pages/auth/OnboardingWizard';
+
+// Phase 9 Pages
+import { CrmDashboard } from './pages/crm/CrmDashboard';
+import { CounselorDashboard } from './pages/crm/CounselorDashboard';
+import { CampaignManager } from './pages/crm/CampaignManager';
+import { WebsiteBuilder } from './pages/crm/WebsiteBuilder';
+import { PublicLandingPage } from './pages/public/PublicLandingPage';
+
+// Super Admin & Franchise Settings (Phase 8)
+import { SuperAdminDashboard } from './pages/super-admin/SuperAdminDashboard';
+import { HeadOfficeDashboard } from './pages/franchise/HeadOfficeDashboard';
+import { BrandingSettingsPage } from './pages/settings/BrandingSettingsPage';
+import { useAuthStore } from './store/auth.store';
 
 // Dashboard
 import { DashboardPage } from './pages/dashboard/DashboardPage';
@@ -66,22 +80,37 @@ import { FeeReportsPage } from './pages/fees/FeeReportsPage';
 // Audit
 import { AuditDashboardPage } from './pages/audit/AuditDashboardPage';
 
-// Placeholder for unbuilt modules
-const PlaceholderPage = ({ title }: { title: string }) => (
-  <div className="flex items-center justify-center h-96">
-    <div className="text-center">
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
-      <p className="text-gray-500">This module is under development (Phase 3).</p>
-    </div>
-  </div>
-);
+// Phase 5 — LMS & Online Tests
+import { MaterialsPage } from './pages/materials/MaterialsPage';
+import { DigitalLibraryPage } from './pages/materials/DigitalLibraryPage';
+import { AssignmentsPage } from './pages/assignments/AssignmentsPage';
+import { OnlineTestsPage } from './pages/tests/OnlineTestsPage';
+import { OnlineExamPage } from './pages/tests/OnlineExamPage';
+import { QuestionBankPage } from './pages/tests/QuestionBankPage';
+import { LeaderboardPage } from './pages/leaderboard/LeaderboardPage';
+import { StudentAnalyticsPage } from './pages/reports/StudentAnalyticsPage';
+import { PredictionDashboard } from './pages/analytics/PredictionDashboard';
+import { FacultyInsights } from './pages/analytics/FacultyInsights';
+
+// Faculty, Users, and Subjects
+import { FacultyListPage } from './pages/faculty/FacultyListPage';
+import { FacultyDetailPage } from './pages/faculty/FacultyDetailPage';
+import { CreateFacultyPage } from './pages/faculty/CreateFacultyPage';
+import { EditFacultyPage } from './pages/faculty/EditFacultyPage';
+import { UsersPage } from './pages/users/UsersPage';
+import { SubjectsPage } from './pages/subjects/SubjectsPage';
+
 
 function App() {
+  const user = useAuthStore((s) => s.user);
+
   return (
     <Routes>
       {/* Public Routes */}
+      <Route path="/public-site" element={<PublicLandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/onboarding" element={<OnboardingWizard />} />
 
       {/* Protected App Routes */}
       <Route
@@ -132,9 +161,12 @@ function App() {
           <Route path=":id/merit-list" element={<MeritListPage />} />
         </Route>
 
-        {/* Reports & Parent Portal */}
+        {/* Reports, Analytics & Parent Portal */}
         <Route path="reports" element={<ReportsPage />} />
+        <Route path="reports/analytics" element={<StudentAnalyticsPage />} />
         <Route path="parent-portal" element={<ParentDashboardPage />} />
+        <Route path="analytics/student/:studentId" element={<PredictionDashboard />} />
+        <Route path="analytics/faculty" element={<FacultyInsights />} />
 
         {/* Communication & Documents */}
         <Route path="notices" element={<NoticesPage />} />
@@ -145,8 +177,35 @@ function App() {
         {/* Audit */}
         <Route path="audit" element={<AuditDashboardPage />} />
 
-        {/* Stubs for Phase 3 */}
-        <Route path="faculty" element={<PlaceholderPage title="Faculty Management" />} />
+        {/* LMS & Online Testing (Phase 5) */}
+        <Route path="materials" element={<MaterialsPage />} />
+        <Route path="library" element={<DigitalLibraryPage />} />
+        <Route path="assignments" element={<AssignmentsPage />} />
+        <Route path="online-tests" element={<OnlineTestsPage />} />
+        <Route path="online-tests/exam/:testId" element={<OnlineExamPage />} />
+        <Route path="question-bank" element={<QuestionBankPage />} />
+        <Route path="leaderboard" element={<LeaderboardPage />} />
+
+        {/* Phase 9 CRM & Admissions Routes */}
+        <Route path="crm">
+          <Route path="dashboard" element={<CrmDashboard />} />
+          <Route path="counselor" element={<CounselorDashboard />} />
+          <Route path="campaigns" element={<CampaignManager />} />
+          <Route path="website-builder" element={<WebsiteBuilder />} />
+        </Route>
+
+        {/* Faculty */}
+        <Route path="faculty" element={<FacultyListPage />} />
+        <Route path="faculty/create" element={<CreateFacultyPage />} />
+        <Route path="faculty/:id" element={<FacultyDetailPage />} />
+        <Route path="faculty/:id/edit" element={<EditFacultyPage />} />
+
+        {/* Users */}
+        <Route path="users" element={<UsersPage />} />
+
+        {/* Subjects */}
+        <Route path="subjects" element={<SubjectsPage />} />
+
         {/* Fees (Phase 4) */}
         <Route path="fees">
           <Route index element={<FeeDashboardPage />} />
@@ -159,7 +218,20 @@ function App() {
           <Route path="refunds" element={<RefundsPage />} />
           <Route path="reports" element={<FeeReportsPage />} />
         </Route>
-        <Route path="settings" element={<PlaceholderPage title="System Settings" />} />
+        {/* SaaS & Franchise (Phase 8) */}
+        <Route
+          path="super-admin"
+          element={
+            user?.role === 'SUPER_ADMIN' ? (
+              <SuperAdminDashboard />
+            ) : (
+              <Navigate to="/dashboard" replace />
+            )
+          }
+        />
+        <Route path="franchise" element={<HeadOfficeDashboard />} />
+        <Route path="settings/branding" element={<BrandingSettingsPage />} />
+        <Route path="settings" element={<BrandingSettingsPage />} />
         
         {/* Catch-all 404 inside AppShell */}
         <Route path="*" element={

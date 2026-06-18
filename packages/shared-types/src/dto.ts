@@ -29,6 +29,23 @@ import {
   DiscountType,
   DiscountMode,
   RefundStatus,
+  OrganizationUnitType,
+  OrganizationScopeType,
+  BranchHealthStatus,
+  RollupPeriodType,
+  FranchiseAgreementStatus,
+  RoyaltyLedgerStatus,
+  FranchiseInvoiceStatus,
+  PayoutStatus,
+  SsoProtocol,
+  MfaFactorType,
+  ApiClientStatus,
+  MarketplaceScope,
+  MarketplaceInstallationStatus,
+  MarketplaceAppStatus,
+  ExtensionPointType,
+  ResourceAssetType,
+  ResourceVisibility,
 } from './enums';
 
 // ---- Common ----
@@ -1156,4 +1173,381 @@ export interface MobileApiEnvelope<T = unknown> {
   data: T;
   message: string;
   timestamp: string;
+}
+
+// ============================================================
+// Phase 8 — Multi-Tenant SaaS & Franchise Management DTOs
+// ============================================================
+
+export interface RegisterTenantRequest {
+  name: string;
+  slug: string;
+  ownerEmail: string;
+}
+
+export interface VerifyEmailRequest {
+  email: string;
+  token: string;
+}
+
+export interface CreateAdminRequest {
+  tenantId: string;
+  email: string;
+  phone?: string;
+  password?: string;
+}
+
+export interface ProvisionTenantRequest {
+  tenantId: string;
+  adminEmail: string;
+  adminPhone?: string;
+  adminPassword?: string;
+  planId: string;
+  customDomain?: string;
+}
+
+export interface SaaSPlanSummary {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  price: number;
+  billingCycle: string;
+  isActive: boolean;
+  featureFlags: Record<string, boolean>;
+}
+
+export interface SubscriptionDetail {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  tenantSlug: string;
+  planId: string;
+  planName: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  renewalDate: string | null;
+}
+
+export interface SaaSInvoiceSummary {
+  id: string;
+  invoiceNumber: string;
+  tenantName: string;
+  planName: string;
+  amount: number;
+  status: string;
+  dueDate: string;
+  paidAt: string | null;
+}
+
+export interface BrandingSettings {
+  logoUrl?: string | null;
+  primaryColor?: string;
+  secondaryColor?: string;
+  sidebarBg?: string;
+  tagline?: string;
+  emailBranding?: {
+    senderName?: string;
+    senderEmail?: string;
+    footerText?: string;
+  };
+  pdfBranding?: {
+    headerLogo?: string;
+    footerText?: string;
+    showWatermark?: boolean;
+  };
+}
+
+export interface FranchiseReportSummary {
+  organizationId: string;
+  organizationName: string;
+  totalStudents: number;
+  totalRevenue: number;
+  branchPerformance: {
+    branchId: string;
+    branchName: string;
+    branchCode: string;
+    studentCount: number;
+    revenue: number;
+    activeUsersCount: number;
+  }[];
+  facultyCount: number;
+  enrollmentTrends: {
+    month: string;
+    studentCount: number;
+  }[];
+}
+
+export interface TenantUsageSummary {
+  tenantId: string;
+  tenantName: string;
+  tenantSlug: string;
+  planName: string;
+  activeUsers: number;
+  storageUsageBytes: number;
+  apiCallsCount: number;
+  healthScore: number;
+}
+
+// ============================================================
+// Phase 10 - Enterprise Platform DTOs
+// ============================================================
+
+export interface OrganizationUnitDto {
+  id: string;
+  organizationId: string;
+  parentId: string | null;
+  branchId: string | null;
+  tenantId: string | null;
+  type: OrganizationUnitType;
+  name: string;
+  code: string;
+  slug: string;
+  isActive: boolean;
+  children?: OrganizationUnitDto[];
+}
+
+export interface CreateOrganizationUnitRequest {
+  organizationId: string;
+  parentId?: string;
+  branchId?: string;
+  tenantId?: string;
+  type: OrganizationUnitType;
+  name: string;
+  code: string;
+  slug: string;
+  address?: Record<string, unknown>;
+  geo?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
+export interface UserOrganizationScopeDto {
+  id: string;
+  userId: string;
+  organizationId: string;
+  organizationUnitId: string | null;
+  tenantId: string | null;
+  scopeType: OrganizationScopeType;
+  permissions: string[];
+  isActive: boolean;
+}
+
+export interface AssignOrganizationScopeRequest {
+  userId: string;
+  organizationId: string;
+  organizationUnitId?: string;
+  tenantId?: string;
+  scopeType: OrganizationScopeType;
+  permissions: string[];
+}
+
+export interface BranchHealthDto {
+  id: string;
+  organizationId: string;
+  organizationUnitId: string | null;
+  branchId: string | null;
+  tenantId: string;
+  status: BranchHealthStatus;
+  systemHealth: number;
+  revenueHealth: number;
+  activeUsers: number;
+  studentCount: number;
+  openTickets: number;
+  metrics: Record<string, unknown>;
+  recordedAt: string;
+}
+
+export interface EnterpriseDashboardDto {
+  organizationId: string;
+  periodType: RollupPeriodType;
+  periodStart: string;
+  periodEnd: string;
+  totalInstitutes: number;
+  totalBranches: number;
+  totalStudents: number;
+  activeUsers: number;
+  totalRevenue: number;
+  enrollmentGrowth: number;
+  examSuccessRate: number;
+  facultyEffectiveness: number;
+  branchHealth: {
+    healthy: number;
+    degraded: number;
+    critical: number;
+    suspended: number;
+    unknown: number;
+  };
+  topUnits: {
+    organizationUnitId: string | null;
+    name: string;
+    totalStudents: number;
+    totalRevenue: number;
+  }[];
+}
+
+export interface FranchisePerformanceDto {
+  organizationId: string;
+  ownerId?: string;
+  totalBranches: number;
+  totalStudents: number;
+  grossRevenue: number;
+  royaltyDue: number;
+  platformCharges: number;
+  payoutDue: number;
+  ledgers: RoyaltyLedgerDto[];
+}
+
+export interface FranchiseOwnerDto {
+  id: string;
+  organizationId: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  isActive: boolean;
+}
+
+export interface FranchiseAgreementDto {
+  id: string;
+  organizationId: string;
+  ownerId: string;
+  branchId: string | null;
+  tenantId: string | null;
+  agreementNumber: string;
+  status: FranchiseAgreementStatus;
+  franchiseFee: number;
+  platformCharge: number;
+  royaltyPercent: number;
+  startDate: string;
+  endDate: string | null;
+}
+
+export interface RoyaltyLedgerDto {
+  id: string;
+  agreementId: string;
+  branchId: string | null;
+  tenantId: string;
+  periodStart: string;
+  periodEnd: string;
+  grossRevenue: number;
+  royaltyAmount: number;
+  platformCharge: number;
+  payoutAmount: number;
+  status: RoyaltyLedgerStatus;
+}
+
+export interface RoyaltyStatementDto {
+  statementNumber: string;
+  organizationId: string;
+  ownerId: string;
+  periodStart: string;
+  periodEnd: string;
+  totals: {
+    grossRevenue: number;
+    royaltyAmount: number;
+    platformCharge: number;
+    payoutAmount: number;
+  };
+}
+
+export interface FranchiseInvoiceDto {
+  id: string;
+  invoiceNumber: string;
+  ownerId: string;
+  amount: number;
+  status: FranchiseInvoiceStatus;
+  dueDate: string;
+}
+
+export interface PayoutReportDto {
+  id: string;
+  reportNumber: string;
+  ownerId: string;
+  grossRevenue: number;
+  deductions: number;
+  netPayout: number;
+  status: PayoutStatus;
+}
+
+export interface SsoProviderDto {
+  id: string;
+  organizationId: string | null;
+  tenantId: string | null;
+  name: string;
+  protocol: SsoProtocol;
+  issuerUrl: string;
+  clientId: string;
+  status: string;
+}
+
+export interface MfaFactorDto {
+  id: string;
+  tenantId: string;
+  userId: string;
+  type: MfaFactorType;
+  status: string;
+  lastUsedAt: string | null;
+}
+
+export interface ApiClientDto {
+  id: string;
+  organizationId: string | null;
+  tenantId: string | null;
+  name: string;
+  status: ApiClientStatus;
+  scopes: string[];
+  rateLimitPerMinute: number;
+}
+
+export interface ApiKeyDto {
+  id: string;
+  clientId: string;
+  keyPrefix: string;
+  status: string;
+  scopes: string[];
+  expiresAt: string | null;
+  createdAt: string;
+  secret?: string;
+}
+
+export interface WebhookSubscriptionDto {
+  id: string;
+  clientId: string | null;
+  organizationId: string | null;
+  tenantId: string | null;
+  url: string;
+  eventTypes: string[];
+  isActive: boolean;
+}
+
+export interface MarketplaceAppDto {
+  id: string;
+  name: string;
+  slug: string;
+  publisher: string;
+  description: string | null;
+  status: MarketplaceAppStatus;
+  scopes: string[];
+  extensionPoints?: ExtensionPointType[];
+}
+
+export interface MarketplaceInstallationDto {
+  id: string;
+  appId: string;
+  organizationId: string | null;
+  tenantId: string | null;
+  scope: MarketplaceScope;
+  status: MarketplaceInstallationStatus;
+  config: Record<string, unknown>;
+}
+
+export interface ResourceCenterItemDto {
+  id: string;
+  organizationId: string;
+  title: string;
+  description: string | null;
+  assetType: ResourceAssetType;
+  visibility: ResourceVisibility;
+  fileUrl: string | null;
+  isPublished: boolean;
 }

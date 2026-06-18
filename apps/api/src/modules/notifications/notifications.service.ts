@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { CreateNotificationDto, QueryNotificationDto } from './dto';
+import { CreateNotificationDto, QueryNotificationDto, RegisterDeviceDto } from './dto';
 import { buildPaginationMeta } from '../../common/utils/helpers';
 import { NotificationType, NotificationDeliveryStatus, UserRole } from '@prime/shared-types';
 
@@ -284,5 +284,14 @@ export class NotificationsService {
       targetIds: [userIdToNotify],
       data: { ticketId },
     });
+  }
+
+  async registerDevice(userId: string, dto: RegisterDeviceDto) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { fcmToken: dto.fcmToken },
+    });
+    this.logger.log(`Registered push token for user ${userId}`);
+    return { success: true };
   }
 }
