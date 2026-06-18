@@ -76,4 +76,12 @@ export class StorageService {
     await this.client.removeObject(this.bucket, key);
     this.logger.log(`Deleted file: ${key}`);
   }
+
+  async checkHealth(): Promise<boolean> {
+    try {
+      return await this.client.bucketExists(this.bucket);
+    } catch {
+      return false;
+    }
+  }
 }

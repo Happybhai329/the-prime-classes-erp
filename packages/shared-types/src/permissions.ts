@@ -134,6 +134,19 @@ export enum Permission {
   EVENT_REGISTER = 'event:register',
   EVENT_SCORE = 'event:score',
   WEBSITE_BUILDER_MANAGE = 'website:builder:manage',
+
+  // Phase 10 - Enterprise platform
+  ENTERPRISE_DASHBOARD_VIEW = 'enterprise:dashboard:view',
+  ORG_HIERARCHY_MANAGE = 'org:hierarchy:manage',
+  ORG_SCOPE_MANAGE = 'org:scope:manage',
+  FRANCHISE_BILLING_MANAGE = 'franchise:billing:manage',
+  PARTNER_PORTAL_VIEW = 'partner:portal:view',
+  RESOURCE_CENTER_MANAGE = 'resource:center:manage',
+  API_KEY_MANAGE = 'api:key:manage',
+  WEBHOOK_MANAGE = 'webhook:manage',
+  MARKETPLACE_INSTALL = 'marketplace:install',
+  ENTERPRISE_SECURITY_MANAGE = 'enterprise:security:manage',
+  OBSERVABILITY_VIEW = 'observability:view',
 }
 
 import { UserRole } from './enums';
@@ -233,6 +246,18 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.EVENT_REGISTER,
     Permission.EVENT_SCORE,
     Permission.WEBSITE_BUILDER_MANAGE,
+    // Phase 10
+    Permission.ENTERPRISE_DASHBOARD_VIEW,
+    Permission.ORG_HIERARCHY_MANAGE,
+    Permission.ORG_SCOPE_MANAGE,
+    Permission.FRANCHISE_BILLING_MANAGE,
+    Permission.PARTNER_PORTAL_VIEW,
+    Permission.RESOURCE_CENTER_MANAGE,
+    Permission.API_KEY_MANAGE,
+    Permission.WEBHOOK_MANAGE,
+    Permission.MARKETPLACE_INSTALL,
+    Permission.ENTERPRISE_SECURITY_MANAGE,
+    Permission.OBSERVABILITY_VIEW,
   ],
 
   [UserRole.FACULTY]: [

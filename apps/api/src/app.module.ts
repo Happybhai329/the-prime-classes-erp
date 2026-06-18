@@ -1,8 +1,10 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { BullModule } from '@nestjs/bull';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
+import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 
 // Core modules
 import { DatabaseModule } from './database/database.module';
@@ -49,6 +51,20 @@ import { AdmissionsModule } from './modules/admissions/admissions.module';
 import { EventsModule } from './modules/events/events.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
 
+// Phase 10 Modules
+import { OrganizationHierarchyModule } from './modules/organization-hierarchy/organization-hierarchy.module';
+import { EnterpriseModule } from './modules/enterprise/enterprise.module';
+import { FranchiseBillingModule } from './modules/franchise-billing/franchise-billing.module';
+import { PartnerPortalModule } from './modules/partner-portal/partner-portal.module';
+import { ResourceCenterModule } from './modules/resource-center/resource-center.module';
+import { ApiPlatformModule } from './modules/api-platform/api-platform.module';
+import { MarketplaceModule } from './modules/marketplace/marketplace.module';
+import { SecurityModule } from './modules/security/security.module';
+import { ObservabilityModule } from './modules/observability/observability.module';
+import { MetricsInterceptor } from './modules/observability/metrics.interceptor';
+import { DisasterRecoveryModule } from './modules/disaster-recovery/disaster-recovery.module';
+import { SupportDeskModule } from './modules/support-desk/support-desk.module';
+
 @Module({
   imports: [
     // Configuration
@@ -75,6 +91,13 @@ import { CampaignsModule } from './modules/campaigns/campaigns.module';
         limit: 100,
       },
     ]),
+
+    BullModule.forRoot({
+      redis: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number(process.env.REDIS_PORT || 6379),
+      },
+    }),
 
     // Core
     DatabaseModule,
@@ -122,18 +145,35 @@ import { CampaignsModule } from './modules/campaigns/campaigns.module';
     AdmissionsModule,
     EventsModule,
     CampaignsModule,
+
+    // Phase 10
+    ObservabilityModule,
+    OrganizationHierarchyModule,
+    EnterpriseModule,
+    FranchiseBillingModule,
+    PartnerPortalModule,
+    ResourceCenterModule,
+    ApiPlatformModule,
+    MarketplaceModule,
+    SecurityModule,
+    DisasterRecoveryModule,
+    SupportDeskModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: MetricsInterceptor,
+    },
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(TenantMiddleware)
+      .apply(RequestContextMiddleware, TenantMiddleware)
       .forRoutes('*');
   }
 }

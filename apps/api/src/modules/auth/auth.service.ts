@@ -8,9 +8,11 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { authenticator } from 'otplib';
 import { PrismaService } from '../../database/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { SecretCipherService } from '../api-platform/secret-cipher.service';
 
 export interface JwtPayload {
   sub: string; // user id
@@ -27,6 +29,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly cipher: SecretCipherService,
   ) {}
 
   /**
@@ -62,6 +65,31 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
+    const activeMfa = await this.prisma.mfaFactor.findFirst({
+      where: {
+        userId: user.id,
+        tenantId: user.tenantId,
+        type: 'TOTP',
+        status: 'ACTIVE',
+      },
+    });
+    if (activeMfa) {
+      if (!dto.mfaCode || !activeMfa.secretRef) {
+        throw new UnauthorizedException('MFA code required');
+      }
+      const isMfaValid = authenticator.check(
+        dto.mfaCode,
+        this.cipher.decrypt(activeMfa.secretRef),
+      );
+      if (!isMfaValid) {
+        throw new UnauthorizedException('Invalid MFA code');
+      }
+      await this.prisma.mfaFactor.update({
+        where: { id: activeMfa.id },
+        data: { lastUsedAt: new Date() },
+      });
+    }
+
     // Generate tokens
     const payload: JwtPayload = {
       sub: user.id,
@@ -72,6 +100,21 @@ export class AuthService {
 
     const accessToken = this.generateAccessToken(payload);
     const refreshToken = await this.generateRefreshToken(payload);
+
+    const decoded = this.jwtService.decode(refreshToken) as {
+      exp?: number;
+    } | null;
+    await this.prisma.userSession.create({
+      data: {
+        tenantId: user.tenantId,
+        userId: user.id,
+        refreshTokenHash: await bcrypt.hash(refreshToken, 10),
+        deviceId: dto.deviceId || null,
+        expiresAt: decoded?.exp
+          ? new Date(decoded.exp * 1000)
+          : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
 
     // Update last login
     await this.prisma.user.update({
@@ -165,10 +208,16 @@ export class AuthService {
    * Logout — invalidate refresh token.
    */
   async logout(userId: string) {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { refreshTokenHash: null },
-    });
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { refreshTokenHash: null },
+      }),
+      this.prisma.userSession.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
   }
 
   /**
@@ -200,6 +249,11 @@ export class AuthService {
         passwordHash: hashedPassword,
         refreshTokenHash: null, // Force re-login on all devices
       },
+    });
+
+    await this.prisma.userSession.updateMany({
+      where: { userId, revokedAt: null },
+      data: { revokedAt: new Date() },
     });
   }
 

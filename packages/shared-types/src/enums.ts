@@ -264,6 +264,13 @@ export enum TicketCategory {
   GENERAL = 'GENERAL',
 }
 
+export enum SupportPriority {
+  LOW = 'LOW',
+  NORMAL = 'NORMAL',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL',
+}
+
 // ---- Documents (Phase 3) ----
 
 export enum DocumentType {
@@ -397,4 +404,131 @@ export enum LeadActivityType {
   NOTE = 'NOTE',
   STATUS_CHANGE = 'STATUS_CHANGE',
   FOLLOW_UP_SCHEDULED = 'FOLLOW_UP_SCHEDULED',
+}
+
+// ---- Enterprise Platform (Phase 10) ----
+
+export enum OrganizationUnitType {
+  ORGANIZATION = 'ORGANIZATION',
+  REGION = 'REGION',
+  ZONE = 'ZONE',
+  STATE = 'STATE',
+  CITY = 'CITY',
+  INSTITUTE = 'INSTITUTE',
+  BRANCH = 'BRANCH',
+}
+
+export enum OrganizationScopeType {
+  ORGANIZATION = 'ORGANIZATION',
+  UNIT = 'UNIT',
+  TENANT = 'TENANT',
+  BRANCH = 'BRANCH',
+}
+
+export enum BranchHealthStatus {
+  HEALTHY = 'HEALTHY',
+  DEGRADED = 'DEGRADED',
+  CRITICAL = 'CRITICAL',
+  SUSPENDED = 'SUSPENDED',
+  UNKNOWN = 'UNKNOWN',
+}
+
+export enum RollupPeriodType {
+  DAILY = 'DAILY',
+  MONTHLY = 'MONTHLY',
+  QUARTERLY = 'QUARTERLY',
+  YEARLY = 'YEARLY',
+}
+
+export enum FranchiseAgreementStatus {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  EXPIRED = 'EXPIRED',
+  TERMINATED = 'TERMINATED',
+}
+
+export enum RoyaltyLedgerStatus {
+  DRAFT = 'DRAFT',
+  POSTED = 'POSTED',
+  INVOICED = 'INVOICED',
+  PAID = 'PAID',
+  DISPUTED = 'DISPUTED',
+}
+
+export enum FranchiseInvoiceStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  VOID = 'VOID',
+}
+
+export enum PayoutStatus {
+  DRAFT = 'DRAFT',
+  APPROVED = 'APPROVED',
+  PAID = 'PAID',
+  HELD = 'HELD',
+}
+
+export enum SsoProtocol {
+  OIDC = 'OIDC',
+  SAML = 'SAML',
+}
+
+export enum MfaFactorType {
+  TOTP = 'TOTP',
+  SMS = 'SMS',
+  EMAIL = 'EMAIL',
+  WEBAUTHN = 'WEBAUTHN',
+}
+
+export enum ApiClientStatus {
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+}
+
+export enum MarketplaceScope {
+  TENANT = 'TENANT',
+  ORGANIZATION = 'ORGANIZATION',
+}
+
+export enum MarketplaceInstallationStatus {
+  ACTIVE = 'ACTIVE',
+  DISABLED = 'DISABLED',
+  REMOVED = 'REMOVED',
+}
+
+export enum MarketplaceAppStatus {
+  DRAFT = 'DRAFT',
+  REVIEW = 'REVIEW',
+  PUBLISHED = 'PUBLISHED',
+  SUSPENDED = 'SUSPENDED',
+}
+
+export enum ExtensionPointType {
+  DASHBOARD_WIDGET = 'DASHBOARD_WIDGET',
+  CRM_ACTION = 'CRM_ACTION',
+  REPORT_EXPORTER = 'REPORT_EXPORTER',
+  COMMUNICATION_PROVIDER = 'COMMUNICATION_PROVIDER',
+  PAYMENT_PROVIDER = 'PAYMENT_PROVIDER',
+  CONTENT_PACK = 'CONTENT_PACK',
+  THEME = 'THEME',
+  AI_ASSISTANT = 'AI_ASSISTANT',
+}
+
+export enum ResourceAssetType {
+  CURRICULUM = 'CURRICULUM',
+  QUESTION_BANK = 'QUESTION_BANK',
+  MATERIAL = 'MATERIAL',
+  CAMPAIGN_TEMPLATE = 'CAMPAIGN_TEMPLATE',
+  POSTER = 'POSTER',
+  SOCIAL_MEDIA_KIT = 'SOCIAL_MEDIA_KIT',
+  ADMISSION_MATERIAL = 'ADMISSION_MATERIAL',
+  REPORT_TEMPLATE = 'REPORT_TEMPLATE',
+}
+
+export enum ResourceVisibility {
+  INTERNAL = 'INTERNAL',
+  PARTNER = 'PARTNER',
+  PUBLIC = 'PUBLIC',
 }

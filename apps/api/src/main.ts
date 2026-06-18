@@ -1,3 +1,4 @@
+import './telemetry';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -25,7 +26,9 @@ async function bootstrap() {
     .map((origin) => origin.trim());
 
   // Global prefix
-  app.setGlobalPrefix(apiPrefix);
+  app.setGlobalPrefix(apiPrefix, {
+    exclude: ['api/public/v1', 'api/public/v1/(.*)', 'metrics'],
+  });
 
   // Security
   app.use(helmet());
@@ -37,7 +40,14 @@ async function bootstrap() {
     origin: corsOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-ID'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Tenant-ID',
+      'X-Tenant-Slug',
+      'X-API-Key',
+      'X-Request-ID',
+    ],
   });
 
   // Global validation pipe
@@ -71,6 +81,7 @@ async function bootstrap() {
       )
       .setVersion('1.0')
       .addBearerAuth()
+      .addApiKey({ type: 'apiKey', name: 'X-API-Key', in: 'header' }, 'public-api-key')
       .addServer(`http://localhost:${port}`)
       .build();
 

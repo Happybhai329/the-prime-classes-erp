@@ -1,6 +1,6 @@
-import { IsString, IsNotEmpty, IsEnum, MaxLength } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
-import { TicketCategory } from '@prime/shared-types';
+import { IsString, IsNotEmpty, IsEnum, IsOptional, MaxLength } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { SupportPriority, TicketCategory } from '@prime/shared-types';
 
 export class CreateTicketDto {
   @ApiProperty({ example: 'Query about attendance records' })
@@ -17,4 +17,9 @@ export class CreateTicketDto {
   @IsString()
   @IsNotEmpty()
   message!: string;
+
+  @ApiPropertyOptional({ enum: SupportPriority, example: SupportPriority.NORMAL })
+  @IsOptional()
+  @IsEnum(SupportPriority)
+  priority?: SupportPriority;
 }
