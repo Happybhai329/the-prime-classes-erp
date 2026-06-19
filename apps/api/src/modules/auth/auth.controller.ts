@@ -6,9 +6,13 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Req,
+  Res,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
+import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
@@ -19,6 +23,7 @@ import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Authentication')
 @Controller('auth')
+@ApiBearerAuth()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -31,8 +36,24 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
-  async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const ip = request.ip || request.socket.remoteAddress || 'unknown';
+    const result = await this.authService.login(dto, ip);
+
+    // Set refresh token in HttpOnly secure cookie
+    response.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    const { refreshToken, ...rest } = result;
+    return rest;
   }
 
   @Public()
@@ -74,24 +95,50 @@ export class AuthController {
     return this.authService.resetPassword(dto.email, dto.otp, dto.newPassword);
   }
 
+  @Public() // Route is public because the strategy is custom-handled inside
   @UseGuards(AuthGuard('jwt-refresh'))
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh access token' })
   async refreshTokens(
     @CurrentUser('sub') userId: string,
+    @Req() request: Request,
     @Body() dto: RefreshTokenDto,
+    @Res({ passthrough: true }) response: Response,
   ) {
-    return this.authService.refreshTokens(userId, dto.refreshToken);
+    const token = request.cookies?.['refreshToken'] || dto.refreshToken;
+    if (!token) {
+      throw new UnauthorizedException('No refresh token provided');
+    }
+
+    const result = await this.authService.refreshTokens(userId, token);
+
+    // Set new refresh token in cookie
+    response.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    const { refreshToken, ...rest } = result;
+    return rest;
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Logout and invalidate refresh token' })
-  async logout(@CurrentUser('sub') userId: string) {
+  async logout(
+    @CurrentUser('sub') userId: string,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     await this.authService.logout(userId);
+    response.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'staging',
+      sameSite: 'strict',
+    });
     return { message: 'Logged out successfully' };
   }
 

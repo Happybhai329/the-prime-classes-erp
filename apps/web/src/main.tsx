@@ -5,7 +5,10 @@ import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { errorLogger } from './lib/error-logger';
 import './index.css';
+
+errorLogger.init();
 
 const queryClient = new QueryClient({
   defaultOptions: {

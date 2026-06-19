@@ -30,10 +30,39 @@ async function bootstrap() {
     exclude: ['api/public/v1', 'api/public/v1/(.*)', 'metrics'],
   });
 
+  // Trust proxy for production/staging (needed for rate limiting & secure cookies behind Nginx)
+  if (configService.get('NODE_ENV') === 'production' || configService.get('NODE_ENV') === 'staging') {
+    app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  }
+
   // Security
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+          fontSrc: ["'self'", "https://fonts.gstatic.com"],
+          imgSrc: ["'self'", "data:", "blob:"],
+          connectSrc: ["'self'", "ws:", "wss:"],
+          objectSrc: ["'none'"],
+          upgradeInsecureRequests: [],
+        },
+      },
+      hsts: {
+        maxAge: 63072000, // 2 years
+        includeSubDomains: true,
+        preload: true,
+      },
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      xssFilter: true,
+      noSniff: true,
+      frameguard: { action: 'sameorigin' },
+    }),
+  );
   app.use(compression());
-  app.use(cookieParser());
+  app.use(cookieParser(configService.getOrThrow<string>('JWT_REFRESH_SECRET')));
 
   // CORS
   app.enableCors({
@@ -48,6 +77,8 @@ async function bootstrap() {
       'X-API-Key',
       'X-Request-ID',
     ],
+    exposedHeaders: ['X-Request-ID'],
+    maxAge: 86400, // 24 hours
   });
 
   // Global validation pipe

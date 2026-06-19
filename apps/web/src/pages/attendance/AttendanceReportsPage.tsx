@@ -222,11 +222,11 @@ export const AttendanceReportsPage: React.FC = () => {
         title="Attendance Reports" 
         description="View granular attendance summaries, check charts, and track student statistics" 
         actions={
-          <div className="flex gap-2 no-print">
-            <Button variant="secondary" onClick={handleExportCSV} className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-2 no-print">
+            <Button variant="secondary" onClick={handleExportCSV} className="flex items-center gap-2 text-xs sm:text-sm">
               <Download className="h-4 w-4" /> Export CSV
             </Button>
-            <Button variant="secondary" onClick={handleExportPDF} className="flex items-center gap-2">
+            <Button variant="secondary" onClick={handleExportPDF} className="flex items-center gap-2 text-xs sm:text-sm">
               <Printer className="h-4 w-4" /> Print PDF
             </Button>
           </div>

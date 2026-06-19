@@ -4,7 +4,7 @@
 # ============================================================
 
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:20.15.0-alpine3.20 AS builder
 WORKDIR /app
 
 # Install pnpm
@@ -32,25 +32,35 @@ RUN pnpm --filter @prime/api exec prisma generate
 RUN pnpm --filter @prime/api build
 
 # Stage 2: Production
-FROM node:20-alpine AS production
+FROM node:20.15.0-alpine3.20 AS production
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+# Install dumb-init and clear cache
+RUN apk add --no-cache dumb-init
 
-# Copy built output
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/prisma ./prisma
-COPY --from=builder /app/apps/api/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/apps/api/node_modules/.prisma ./node_modules/.prisma
+# Build metadata labels
+LABEL maintainer="The Prime Classes <admin@theprimeclasses.com>" \
+      version="1.0.0" \
+      description="Production Dockerfile for Prime Classes ERP API"
+
+# Copy built output with node user ownership
+COPY --from=builder --chown=node:node /app/apps/api/dist ./dist
+COPY --from=builder --chown=node:node /app/apps/api/prisma ./prisma
+COPY --from=builder --chown=node:node /app/apps/api/package.json ./
+COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/apps/api/node_modules/.prisma ./node_modules/.prisma
 
 # Set environment
 ENV NODE_ENV=production
 EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/v1/health || exit 1
+# Use non-root node user
+USER node
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/v1/health/ready || exit 1
+
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["node", "dist/main.js"]
+

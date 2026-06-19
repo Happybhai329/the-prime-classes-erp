@@ -242,7 +242,7 @@ export const OnlineExamPage: React.FC = () => {
   return (
     <div id="online-exam-fullscreen" className="fixed inset-0 z-50 bg-gray-950 flex flex-col font-sans text-gray-100 overflow-hidden select-none">
       {/* Header bar */}
-      <div className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
+      <div className="bg-gray-900 border-b border-gray-800 px-4 py-3 sm:px-6 sm:py-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <ShieldAlert className="h-6 w-6 text-amber-500" />
           <div>
@@ -264,16 +264,16 @@ export const OnlineExamPage: React.FC = () => {
               onClick={enterFullscreen}
               className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded hover:bg-amber-500 hover:text-white transition"
             >
-              Enter Fullscreen
+              Fullscreen
             </button>
           )}
         </div>
       </div>
 
       {/* Main Workspace split */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden">
         {/* Left Side: Question Pane */}
-        <div className="flex-1 flex flex-col justify-between overflow-y-auto p-8">
+        <div className="flex-1 flex flex-col justify-between overflow-y-auto p-4 sm:p-8">
           {currentQ ? (
             <div className="max-w-3xl mx-auto w-full space-y-6">
               <div className="flex justify-between items-center bg-gray-900/50 px-4 py-2.5 rounded-xl border border-gray-800">
@@ -304,8 +304,8 @@ export const OnlineExamPage: React.FC = () => {
                         onClick={() => selectAnswer(opt)}
                         className={`p-4 border rounded-2xl cursor-pointer transition flex items-center gap-4 ${
                           isSelected
-                            ? 'border-amber-500 bg-amber-500/10 text-white font-bold'
-                            : 'border-gray-800 bg-gray-900/40 hover:bg-gray-900 text-gray-300 hover:text-white'
+                             ? 'border-amber-500 bg-amber-500/10 text-white font-bold'
+                             : 'border-gray-800 bg-gray-900/40 hover:bg-gray-900 text-gray-300 hover:text-white'
                         }`}
                       >
                         <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 border ${
@@ -339,8 +339,8 @@ export const OnlineExamPage: React.FC = () => {
           )}
 
           {/* Action Footer */}
-          <div className="border-t border-gray-850 pt-6 mt-8 flex justify-between items-center max-w-4xl mx-auto w-full">
-            <div className="flex gap-2">
+          <div className="border-t border-gray-850 pt-6 mt-8 flex flex-col sm:flex-row gap-4 justify-between items-center max-w-4xl mx-auto w-full">
+            <div className="flex gap-2 w-full sm:w-auto justify-between sm:justify-start">
               <button
                 onClick={clearAnswer}
                 className="px-4 py-2 border border-gray-800 rounded-xl text-xs font-bold text-gray-400 hover:text-white hover:bg-gray-900 transition"
@@ -355,21 +355,23 @@ export const OnlineExamPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handlePrev}
-                disabled={currentQIndex === 0}
-                className="p-2 border border-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:hover:bg-transparent rounded-xl transition"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                onClick={handleNext}
-                disabled={currentQIndex === questionsList.length - 1}
-                className="p-2 border border-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:hover:bg-transparent rounded-xl transition"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+              <div className="flex gap-2">
+                <button
+                  onClick={handlePrev}
+                  disabled={currentQIndex === 0}
+                  className="p-2 border border-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:hover:bg-transparent rounded-xl transition"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={handleNext}
+                  disabled={currentQIndex === questionsList.length - 1}
+                  className="p-2 border border-gray-800 hover:bg-gray-900 disabled:opacity-40 disabled:hover:bg-transparent rounded-xl transition"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
               <button
                 onClick={handleNext}
                 className="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-gray-950 font-bold rounded-xl text-xs shadow-sm transition"
@@ -381,7 +383,7 @@ export const OnlineExamPage: React.FC = () => {
         </div>
 
         {/* Right Side: Sidebar Navigation Palette */}
-        <div className="w-80 bg-gray-900 border-l border-gray-800 flex flex-col justify-between p-6">
+        <div className="w-full lg:w-80 bg-gray-900 border-t lg:border-t-0 lg:border-l border-gray-800 flex flex-col justify-between p-4 sm:p-6 shrink-0">
           <div className="space-y-6">
             <h3 className="font-bold text-sm uppercase text-gray-400 tracking-wider">Exam Navigator</h3>
 

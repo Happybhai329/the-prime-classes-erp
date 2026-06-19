@@ -89,7 +89,7 @@ export const EnterMarksPage: React.FC = () => {
 
   return (
     <div id="enter-marks-page">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <button onClick={() => navigate(`/tests/${test.id}`)} className="btn-ghost btn-sm p-2">
             <ArrowLeft className="h-5 w-5" />
@@ -104,7 +104,7 @@ export const EnterMarksPage: React.FC = () => {
         <button 
           onClick={handleSubmit}
           disabled={enterMarksMutation.isPending}
-          className="btn-primary gap-2"
+          className="btn-primary gap-2 w-full sm:w-auto justify-center"
         >
           <Save className="h-4 w-4" />
           {enterMarksMutation.isPending ? 'Saving...' : 'Save Marks'}
@@ -112,7 +112,7 @@ export const EnterMarksPage: React.FC = () => {
       </div>
 
       <div className="card overflow-hidden">
-        <div className="table-container border-0 rounded-none">
+        <div className="table-container border-0 rounded-none overflow-x-auto">
           <table className="table">
             <thead>
               <tr>

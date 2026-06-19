@@ -4,7 +4,7 @@
 # ============================================================
 
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:20.15.0-alpine3.20 AS builder
 WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
@@ -22,11 +22,28 @@ RUN pnpm --filter @prime/shared-types build
 RUN pnpm --filter @prime/web build
 
 # Stage 2: Serve
-FROM nginx:alpine AS production
+FROM nginx:1.25.4-alpine AS production
 
-COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
-COPY infrastructure/nginx/nginx.conf /etc/nginx/nginx.conf
+LABEL maintainer="The Prime Classes <admin@theprimeclasses.com>" \
+      version="1.0.0" \
+      description="Production Dockerfile for Prime Classes ERP Web"
 
-EXPOSE 80
+# Copy dedicated Nginx config for static web files
+COPY infrastructure/nginx/nginx-web.conf /etc/nginx/nginx.conf
+
+# Copy build artifacts with correct ownership
+COPY --from=builder --chown=nginx:nginx /app/apps/web/dist /usr/share/nginx/html
+
+# Support running Nginx as non-root user (nginx has UID 101 in Alpine)
+RUN touch /tmp/nginx.pid && \
+    chown -R nginx:nginx /tmp/nginx.pid /var/cache/nginx /var/log/nginx /etc/nginx
+
+USER nginx
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
 CMD ["nginx", "-g", "daemon off;"]
+

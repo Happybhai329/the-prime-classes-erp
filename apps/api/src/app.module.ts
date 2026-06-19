@@ -5,6 +5,8 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
+import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
+import { RedisThrottlerStorage } from './common/throttle/redis-throttle.storage';
 
 // Core modules
 import { DatabaseModule } from './database/database.module';
@@ -65,37 +67,48 @@ import { MetricsInterceptor } from './modules/observability/metrics.interceptor'
 import { DisasterRecoveryModule } from './modules/disaster-recovery/disaster-recovery.module';
 import { SupportDeskModule } from './modules/support-desk/support-desk.module';
 
+import { validate } from './common/config/env.validation';
+
 @Module({
   imports: [
     // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],
+      validate,
     }),
 
     // Rate limiting
-    ThrottlerModule.forRoot([
-      {
-        name: 'short',
-        ttl: 1000,
-        limit: 10,
-      },
-      {
-        name: 'medium',
-        ttl: 10000,
-        limit: 50,
-      },
-      {
-        name: 'long',
-        ttl: 60000,
-        limit: 100,
-      },
-    ]),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService, RedisThrottlerStorage],
+      useFactory: (config: ConfigService, storage: RedisThrottlerStorage) => ({
+        throttlers: [
+          {
+            name: 'short',
+            ttl: 1000,
+            limit: 10,
+          },
+          {
+            name: 'medium',
+            ttl: 10000,
+            limit: 50,
+          },
+          {
+            name: 'long',
+            ttl: 60000,
+            limit: config.get<number>('THROTTLE_LIMIT', 100),
+          },
+        ],
+        storage,
+      }),
+    }),
 
     BullModule.forRoot({
       redis: {
         host: process.env.REDIS_HOST || 'localhost',
         port: Number(process.env.REDIS_PORT || 6379),
+        password: process.env.REDIS_PASSWORD || undefined,
       },
     }),
 
@@ -160,6 +173,7 @@ import { SupportDeskModule } from './modules/support-desk/support-desk.module';
     SupportDeskModule,
   ],
   providers: [
+    RedisThrottlerStorage,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
@@ -173,7 +187,7 @@ import { SupportDeskModule } from './modules/support-desk/support-desk.module';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(RequestContextMiddleware, TenantMiddleware)
+      .apply(SecurityHeadersMiddleware, RequestContextMiddleware, TenantMiddleware)
       .forRoutes('*');
   }
 }

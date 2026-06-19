@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { authenticator } from 'otplib';
+import Redis from 'ioredis';
 import { PrismaService } from '../../database/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -25,6 +26,7 @@ export interface JwtPayload {
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private readonly redis: Redis;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -32,13 +34,35 @@ export class AuthService {
     private readonly configService: ConfigService,
     private readonly cipher: SecretCipherService,
     private readonly mailService: MailService,
-  ) {}
+  ) {
+    this.redis = new Redis({
+      host: this.configService.get<string>('REDIS_HOST', 'localhost'),
+      port: this.configService.get<number>('REDIS_PORT', 6379),
+      password: this.configService.get<string>('REDIS_PASSWORD') || undefined,
+      lazyConnect: true,
+      maxRetriesPerRequest: 1,
+      enableOfflineQueue: false,
+    });
+  }
 
   /**
    * Authenticate user with email + password.
    * Returns access token and refresh token.
    */
-  async login(dto: LoginDto) {
+  async login(dto: LoginDto, ip: string = 'unknown') {
+    const emailLower = dto.email.toLowerCase();
+    const emailLockKey = `lockout:email:${emailLower}`;
+    const ipLockKey = `lockout:ip:${ip}`;
+
+    const [isEmailLocked, isIpLocked] = await Promise.all([
+      this.isLocked(emailLockKey),
+      this.isLocked(ipLockKey),
+    ]);
+
+    if (isEmailLocked || isIpLocked) {
+      throw new UnauthorizedException('Too many failed login attempts. Please try again later.');
+    }
+
     const user = await this.prisma.user.findFirst({
       where: {
         OR: [
@@ -55,6 +79,7 @@ export class AuthService {
     });
 
     if (!user) {
+      await this.registerFailedAttempt(dto.email, ip);
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -64,6 +89,7 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!isPasswordValid) {
+      await this.registerFailedAttempt(dto.email, ip);
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -84,6 +110,7 @@ export class AuthService {
         this.cipher.decrypt(activeMfa.secretRef),
       );
       if (!isMfaValid) {
+        await this.registerFailedAttempt(dto.email, ip);
         throw new UnauthorizedException('Invalid MFA code');
       }
       await this.prisma.mfaFactor.update({
@@ -91,6 +118,9 @@ export class AuthService {
         data: { lastUsedAt: new Date() },
       });
     }
+
+    // Clear failed login tracking on success
+    await this.clearFailedAttempts(dto.email, ip);
 
     // Generate tokens
     const payload: JwtPayload = {
@@ -243,6 +273,7 @@ export class AuthService {
       throw new UnauthorizedException('Current password is incorrect');
     }
 
+    this.validatePasswordComplexity(dto.newPassword);
     const hashedPassword = await bcrypt.hash(dto.newPassword, 12);
 
     await this.prisma.user.update({
@@ -420,6 +451,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid OTP');
     }
 
+    this.validatePasswordComplexity(newPassword);
     // Hash new password and clear reset tokens
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
@@ -445,6 +477,79 @@ export class AuthService {
     return {
       message: 'Password has been reset successfully. Please login with your new password.',
     };
+  }
+
+  private validatePasswordComplexity(password: string): void {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      throw new UnauthorizedException(
+        'Password must be at least 8 characters long, and contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+      );
+    }
+  }
+
+  private async isLocked(key: string): Promise<boolean> {
+    try {
+      if (this.redis.status === 'wait') {
+        await this.redis.connect();
+      }
+      const locked = await this.redis.get(key);
+      return locked === '1';
+    } catch {
+      return false; // Fallback to not locking if Redis fails
+    }
+  }
+
+  private async registerFailedAttempt(email: string, ip: string) {
+    const emailLower = email.toLowerCase();
+    const attemptsEmailKey = `attempts:email:${emailLower}`;
+    const attemptsIpKey = `attempts:ip:${ip}`;
+    const emailLockKey = `lockout:email:${emailLower}`;
+    const ipLockKey = `lockout:ip:${ip}`;
+
+    try {
+      if (this.redis.status === 'wait') {
+        await this.redis.connect();
+      }
+
+      const [attemptsEmail, attemptsIp] = await Promise.all([
+        this.redis.incr(attemptsEmailKey),
+        this.redis.incr(attemptsIpKey),
+      ]);
+
+      // Set expiry for attempts window (15 minutes)
+      if (attemptsEmail === 1) await this.redis.expire(attemptsEmailKey, 900);
+      if (attemptsIp === 1) await this.redis.expire(attemptsIpKey, 900);
+
+      // Lockout conditions: 5 attempts for email, 10 attempts for IP
+      if (attemptsEmail >= 5) {
+        await this.redis.set(emailLockKey, '1', 'EX', 900); // 15 mins lockout
+        this.logger.warn(`Brute force lockout: email ${emailLower} locked for 15 minutes.`);
+      }
+      if (attemptsIp >= 10) {
+        await this.redis.set(ipLockKey, '1', 'EX', 1800); // 30 mins lockout for IP
+        this.logger.warn(`Brute force lockout: IP ${ip} locked for 30 minutes.`);
+      }
+    } catch (err: any) {
+      this.logger.error('Failed to register failed login attempt in Redis', err?.stack);
+    }
+  }
+
+  private async clearFailedAttempts(email: string, ip: string) {
+    const emailLower = email.toLowerCase();
+    try {
+      if (this.redis.status === 'wait') {
+        await this.redis.connect();
+      }
+      await this.redis.del(
+        `attempts:email:${emailLower}`,
+        `attempts:ip:${ip}`,
+        `lockout:email:${emailLower}`,
+        `lockout:ip:${ip}`
+      );
+    } catch (err: any) {
+      this.logger.error('Failed to clear failed login attempts in Redis', err?.stack);
+    }
   }
 }
 

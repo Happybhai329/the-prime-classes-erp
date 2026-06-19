@@ -1,0 +1,52 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9.15.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate Prisma Schema
+        run: pnpm --filter @prime/api exec prisma validate
+
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
+      - name: Run Linting
+        run: pnpm lint
+
+      - name: Run Backend Tests
+        run: pnpm --filter @prime/api test
+
+      - name: Run Frontend Tests
+        run: pnpm --filter @prime/web test
+
+      - name: Build Projects
+        run: pnpm build
+
+      - name: Verify API Docker Build
+        run: docker build -t prime-api:test -f infrastructure/docker/Dockerfile.api .
+
+      - name: Verify Web Docker Build
+        run: docker build -t prime-web:test -f infrastructure/docker/Dockerfile.web .

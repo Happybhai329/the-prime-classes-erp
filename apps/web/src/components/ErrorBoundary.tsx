@@ -1,5 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertCircle, RefreshCw, Home } from 'lucide-react';
+import { useAuthStore } from '../store/auth.store';
+import { errorLogger } from '../lib/error-logger';
 
 interface Props {
   children?: ReactNode;
@@ -17,12 +19,19 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Uncaught error in ErrorBoundary:', error, errorInfo);
+    const user = useAuthStore.getState().user;
+    errorLogger.logError(error, {
+      errorInfo,
+      context: {
+        route: window.location.pathname,
+        role: user?.role || 'anonymous',
+        tenantId: user?.tenantId || 'unknown',
+      },
+    });
   }
 
   private handleReset = () => {
@@ -46,10 +55,10 @@ export class ErrorBoundary extends Component<Props, State> {
               </p>
             </div>
 
-            {this.state.error && (
+            {this.state.error && !import.meta.env.PROD && (
               <div className="bg-gray-50 border border-gray-150 rounded-xl p-4 text-left max-h-40 overflow-y-auto font-mono text-xs text-red-700">
                 <div className="font-bold border-b border-gray-200 pb-1 mb-1">
-                  Error Details:
+                  Error Details (Dev Only):
                 </div>
                 <div className="whitespace-pre-wrap">{this.state.error.message}</div>
                 {this.state.error.stack && (

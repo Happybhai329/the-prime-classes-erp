@@ -4,9 +4,9 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
-  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { logger } from '../config/winston.config';
 
 /**
  * Global exception filter — normalises ALL errors to a consistent shape:
@@ -19,11 +19,10 @@ import { Response } from 'express';
  */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
-  private readonly logger = new Logger(AllExceptionsFilter.name);
-
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<any>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let code = 'INTERNAL_ERROR';
@@ -70,14 +69,39 @@ export class AllExceptionsFilter implements ExceptionFilter {
             code = `HTTP_${status}`;
         }
       }
-    } else {
-      // Non-HTTP exceptions (crashes, unhandled errors)
-      const err = exception as Error;
-      this.logger.error(
-        `Unhandled exception: ${err.message}`,
-        err.stack,
-      );
     }
+
+    const requestId = request.headers?.['x-request-id'] || 'none';
+    const tenantId = request.headers?.['x-tenant-slug'] || request.headers?.['x-tenant-id'] || request.user?.tenantId || 'none';
+    const userId = request.user?.sub || request.user?.id || 'none';
+    const method = request.method;
+    const url = request.url;
+
+    // Structured JSON log using winston
+    logger.error({
+      message: `Error handled by filter: ${message}`,
+      context: 'AllExceptionsFilter',
+      requestId,
+      tenantId,
+      userId,
+      method,
+      url,
+      code,
+      status,
+      fingerprint: `${method}:${url.split('?')[0]}:${code}`,
+      stack: exception instanceof Error ? exception.stack : undefined,
+    });
+
+    // Prepare Sentry captureException hook
+    // Sentry.withScope((scope) => {
+    //   scope.setTag('requestId', requestId);
+    //   scope.setTag('tenantId', tenantId);
+    //   scope.setTag('userId', userId);
+    //   scope.setExtra('method', method);
+    //   scope.setExtra('url', url);
+    //   scope.setFingerprint([method, url.split('?')[0], code]);
+    //   Sentry.captureException(exception);
+    // });
 
     response.status(status).json({
       success: false,

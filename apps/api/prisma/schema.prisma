@@ -5,6 +5,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["metrics"]
 }
 
 datasource db {
@@ -259,6 +260,7 @@ model Student {
   @@unique([tenantId, rollNumber])
   @@index([tenantId])
   @@index([status])
+  @@index([tenantId, status])
   @@index([deletedAt])
   @@map("students")
 }
@@ -502,6 +504,7 @@ model AttendanceSession {
   @@unique([batchId, sessionDate, sessionType, subjectId])
   @@index([tenantId])
   @@index([sessionDate])
+  @@index([tenantId, batchId])
   @@map("attendance_sessions")
 }
 
@@ -565,6 +568,7 @@ model Test {
 
   @@index([tenantId])
   @@index([batchId])
+  @@index([tenantId, batchId])
   @@index([testDate])
   @@index([status])
   @@map("tests")
@@ -706,6 +710,7 @@ model FeeInvoice {
   @@index([tenantId])
   @@index([studentId])
   @@index([status])
+  @@index([tenantId, status])
   @@index([dueDate])
   @@map("fee_invoices")
 }
@@ -797,6 +802,7 @@ model StudentFee {
   @@index([tenantId])
   @@index([studentId])
   @@index([status])
+  @@index([tenantId, status])
   @@index([deletedAt])
   @@map("student_fees")
 }
@@ -1000,6 +1006,7 @@ model Notification {
 
   @@index([tenantId])
   @@index([sentAt])
+  @@index([tenantId, sentAt])
   @@map("notifications")
 }
 
@@ -1072,6 +1079,7 @@ model AuditLog {
   @@index([userId])
   @@index([resource])
   @@index([createdAt])
+  @@index([tenantId, createdAt])
   @@map("audit_logs")
 }
 

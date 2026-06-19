@@ -18,4 +18,31 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom') || id.includes('scheduler')) {
+              return 'react-dom';
+            }
+            if (id.includes('react/')) {
+              return 'react-core';
+            }
+            if (id.includes('recharts') || id.includes('d3')) {
+              return 'recharts';
+            }
+            if (id.includes('react-router-dom') || id.includes('@remix-run')) {
+              return 'react-router';
+            }
+            if (id.includes('@tanstack/react-query')) {
+              return 'react-query';
+            }
+            return 'vendor';
+          }
+        },
+      },
+    },
+  },
 });
