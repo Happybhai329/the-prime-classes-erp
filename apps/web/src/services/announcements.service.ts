@@ -11,22 +11,27 @@ export interface CreateAnnouncementPayload {
 
 export const announcementsService = {
   create: async (data: CreateAnnouncementPayload) => {
-    return api.post('/announcements', data);
+    const res = await api.post('/announcements', data);
+    return res.data.data;
   },
 
   findAll: async (params?: Record<string, any>) => {
-    return api.get('/announcements', { params });
+    const res = await api.get('/announcements', { params });
+    return res.data.data;
   },
 
   findOne: async (id: string) => {
-    return api.get(`/announcements/${id}`);
+    const res = await api.get(`/announcements/${id}`);
+    return res.data.data;
   },
 
   update: async (id: string, data: Partial<CreateAnnouncementPayload>) => {
-    return api.patch(`/announcements/${id}`, data);
+    const res = await api.patch(`/announcements/${id}`, data);
+    return res.data.data;
   },
 
   remove: async (id: string) => {
-    return api.delete(`/announcements/${id}`);
+    const res = await api.delete(`/announcements/${id}`);
+    return res.data.data;
   },
 };

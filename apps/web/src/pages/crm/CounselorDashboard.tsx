@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import {
   PhoneCall,
   Calendar,
@@ -35,7 +36,7 @@ export const CounselorDashboard: React.FC = () => {
 
   const handleLogActivity = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Logged ${activityType} activity: "${activityDesc}" for ${selectedLead.leadName}. Next follow-up set for ${nextFollowUpDate || 'not scheduled'}.`);
+    toast.success(`Logged ${activityType} activity: "${activityDesc}" for ${selectedLead.leadName}. Next follow-up set for ${nextFollowUpDate || 'not scheduled'}.`);
     setActivityDesc('');
     setNextFollowUpDate('');
   };

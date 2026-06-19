@@ -33,6 +33,8 @@ import { EditStudentPage } from './pages/students/EditStudentPage';
 // Parents
 import { ParentListPage } from './pages/parents/ParentListPage';
 import { ParentDetailPage } from './pages/parents/ParentDetailPage';
+import { CreateParentPage } from './pages/parents/CreateParentPage';
+import { EditParentPage } from './pages/parents/EditParentPage';
 
 // Batches
 import { BatchListPage } from './pages/batches/BatchListPage';
@@ -61,6 +63,9 @@ import { ParentDashboardPage } from './pages/dashboard/ParentDashboardPage';
 // Communication & Notices
 import { NoticesPage } from './pages/communication/NoticesPage';
 import { AnnouncementsPage } from './pages/communication/AnnouncementsPage';
+import { CreateAnnouncementPage } from './pages/communication/CreateAnnouncementPage';
+import { EditAnnouncementPage } from './pages/communication/EditAnnouncementPage';
+import { AnnouncementDetailPage } from './pages/communication/AnnouncementDetailPage';
 import { SupportTicketsPage } from './pages/communication/SupportTicketsPage';
 
 // Documents
@@ -135,7 +140,9 @@ function App() {
 
         {/* Parents */}
         <Route path="parents" element={<ParentListPage />} />
+        <Route path="parents/create" element={<CreateParentPage />} />
         <Route path="parents/:id" element={<ParentDetailPage />} />
+        <Route path="parents/:id/edit" element={<EditParentPage />} />
 
         {/* Batches */}
         <Route path="batches" element={<BatchListPage />} />
@@ -171,6 +178,9 @@ function App() {
         {/* Communication & Documents */}
         <Route path="notices" element={<NoticesPage />} />
         <Route path="announcements" element={<AnnouncementsPage />} />
+        <Route path="announcements/create" element={<CreateAnnouncementPage />} />
+        <Route path="announcements/:id" element={<AnnouncementDetailPage />} />
+        <Route path="announcements/:id/edit" element={<EditAnnouncementPage />} />
         <Route path="tickets" element={<SupportTicketsPage />} />
         <Route path="documents" element={<DocumentsPage />} />
 

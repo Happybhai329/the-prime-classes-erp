@@ -14,30 +14,37 @@ export interface ReplyTicketPayload {
 
 export const communicationService = {
   createTicket: async (data: CreateTicketPayload) => {
-    return api.post('/tickets', data);
+    const res = await api.post('/support-desk/tickets', data);
+    return res.data.data;
   },
 
   getMyTickets: async (params?: Record<string, any>) => {
-    return api.get('/tickets', { params });
+    const res = await api.get('/support-desk/tickets', { params });
+    return res.data.data;
   },
 
   getAllTickets: async (params?: Record<string, any>) => {
-    return api.get('/tickets/all', { params });
+    const res = await api.get('/support-desk/tickets/all', { params });
+    return res.data.data;
   },
 
   getTicketDetail: async (id: string) => {
-    return api.get(`/tickets/${id}`);
+    const res = await api.get(`/support-desk/tickets/${id}`);
+    return res.data.data;
   },
 
   replyToTicket: async (id: string, data: ReplyTicketPayload) => {
-    return api.post(`/tickets/${id}/reply`, data);
+    const res = await api.post(`/support-desk/tickets/${id}/reply`, data);
+    return res.data.data;
   },
 
   updateStatus: async (id: string, status: TicketStatus) => {
-    return api.patch(`/tickets/${id}/status`, { status });
+    const res = await api.patch(`/support-desk/tickets/${id}/status`, { status });
+    return res.data.data;
   },
 
   assignTicket: async (id: string, assigneeId: string) => {
-    return api.patch(`/tickets/${id}/assign`, { assigneeId });
+    const res = await api.patch(`/support-desk/tickets/${id}/assign`, { assigneeId });
+    return res.data.data;
   },
 };

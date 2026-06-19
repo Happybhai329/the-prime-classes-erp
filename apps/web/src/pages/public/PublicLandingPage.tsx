@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import {
   GraduationCap,
   Award,
@@ -67,7 +68,7 @@ export const PublicLandingPage: React.FC = () => {
 
   const handleLeadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Thank you ${leadName}! Your inquiry has been submitted. A counselor will call you back within 24 hours.`);
+    toast.success(`Thank you ${leadName}! Your inquiry has been submitted. A counselor will call you back within 24 hours.`);
     setLeadName('');
     setLeadPhone('');
     setLeadEmail('');
@@ -80,7 +81,7 @@ export const PublicLandingPage: React.FC = () => {
     setAppNumber(mockAppNum);
     setApplicationId('app-uuid-placeholder');
     setAppStatus('Submitted');
-    alert(`Application successfully submitted! Application Number: ${mockAppNum}. Please upload required verification documents next.`);
+    toast.success(`Application successfully submitted! Application Number: ${mockAppNum}. Please upload required verification documents next.`);
   };
 
   const handleTrackSubmit = (e: React.FormEvent) => {
@@ -109,7 +110,7 @@ export const PublicLandingPage: React.FC = () => {
     setScholRollNumber(mockRoll);
     setScholSeatNumber(mockSeat);
     setShowAdmitCard(true);
-    alert(`Registration Successful! Roll Number: ${mockRoll}. You can now view and download your Admit Card.`);
+    toast.success(`Registration Successful! Roll Number: ${mockRoll}. You can now view and download your Admit Card.`);
   };
 
   return (

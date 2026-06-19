@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import {
   Laptop,
   Save,
@@ -17,7 +18,7 @@ export const WebsiteBuilder: React.FC = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    alert('Website configuration successfully updated and published to custom domain/slug!');
+    toast.success('Website configuration successfully updated and published to custom domain/slug!');
   };
 
   return (

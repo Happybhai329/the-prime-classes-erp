@@ -13,30 +13,37 @@ export interface CreateNoticePayload {
 
 export const noticesService = {
   create: async (data: CreateNoticePayload) => {
-    return api.post('/notices', data);
+    const res = await api.post('/notices', data);
+    return res.data.data;
   },
 
   findAll: async (params?: Record<string, any>) => {
-    return api.get('/notices', { params });
+    const res = await api.get('/notices', { params });
+    return res.data.data;
   },
 
   getMyNotices: async (params?: Record<string, any>) => {
-    return api.get('/notices/my', { params });
+    const res = await api.get('/notices/my', { params });
+    return res.data.data;
   },
 
   findOne: async (id: string) => {
-    return api.get(`/notices/${id}`);
+    const res = await api.get(`/notices/${id}`);
+    return res.data.data;
   },
 
   update: async (id: string, data: Partial<CreateNoticePayload> & { isPublished?: boolean }) => {
-    return api.patch(`/notices/${id}`, data);
+    const res = await api.patch(`/notices/${id}`, data);
+    return res.data.data;
   },
 
   remove: async (id: string) => {
-    return api.delete(`/notices/${id}`);
+    const res = await api.delete(`/notices/${id}`);
+    return res.data.data;
   },
 
   markRead: async (id: string) => {
-    return api.post(`/notices/${id}/read`);
+    const res = await api.post(`/notices/${id}/read`);
+    return res.data.data;
   },
 };

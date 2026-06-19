@@ -26,7 +26,22 @@ export const useUpdateParent = () => {
       toast.success('Parent updated successfully');
     },
     onError: (err: any) => {
-      toast.error(err.response?.data?.error?.message || 'Failed to update parent');
+      toast.error(err.response?.data?.message || err.response?.data?.error?.message || 'Failed to update parent');
     },
   });
 };
+
+export const useCreateParent = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Record<string, any>) => parentService.create(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['parents'] });
+      toast.success('Parent profile created successfully');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || err.response?.data?.error?.message || 'Failed to create parent');
+    },
+  });
+};
+

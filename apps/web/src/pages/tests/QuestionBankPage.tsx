@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useQuestions, useQuestionBanks, useQuestionBankDetails, useCreateQuestion, useDeleteQuestion, useBulkImportQuestions, useCreateQuestionBank } from '@/hooks/useQuestions';
 import { useBatches } from '@/hooks/useBatches';
 import { HelpCircle, Plus, Trash2, Database, FileJson, AlertCircle } from 'lucide-react';
@@ -15,6 +16,8 @@ export const QuestionBankPage: React.FC = () => {
   const [isCreateBankOpen, setIsCreateBankOpen] = useState(false);
   const [isAddQuestionOpen, setIsAddQuestionOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
 
   // Form states for creating bank
   const [bankName, setBankName] = useState('');
@@ -129,13 +132,21 @@ export const QuestionBankPage: React.FC = () => {
     setQExplanation('');
   };
 
-  const handleDeleteQuestion = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this question from pool?')) return;
+  const handleDeleteQuestion = (id: string) => {
+    setQuestionToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!questionToDelete) return;
     try {
-      await deleteQuestionMutation.mutateAsync(id);
+      await deleteQuestionMutation.mutateAsync(questionToDelete);
       toast.success('Question deleted');
     } catch {
       toast.error('Delete failed');
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setQuestionToDelete(null);
     }
   };
 
@@ -583,6 +594,20 @@ export const QuestionBankPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setQuestionToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Question"
+        message="Are you sure you want to delete this question from pool?"
+        confirmLabel="Delete"
+        isDestructive={true}
+        isLoading={deleteQuestionMutation.isPending}
+      />
     </div>
   );
 };

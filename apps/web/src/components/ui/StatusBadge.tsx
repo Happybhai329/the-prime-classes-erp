@@ -25,6 +25,13 @@ const statusConfig: Record<string, { bg: string; text: string; label?: string }>
   COMPLETED: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
   PUBLISHED: { bg: 'bg-indigo-50', text: 'text-indigo-700' },
   TRANSFERRED: { bg: 'bg-purple-50', text: 'text-purple-700' },
+  OPEN: { bg: 'bg-blue-50', text: 'text-blue-700' },
+  IN_PROGRESS: { bg: 'bg-amber-50', text: 'text-amber-700', label: 'In Progress' },
+  RESOLVED: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
+  CLOSED: { bg: 'bg-gray-100', text: 'text-gray-600' },
+  URGENT: { bg: 'bg-red-50', text: 'text-red-700' },
+  HIGH: { bg: 'bg-amber-50', text: 'text-amber-700' },
+  NORMAL: { bg: 'bg-emerald-50', text: 'text-emerald-700' },
 };
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className = '' }) => {

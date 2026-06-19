@@ -67,3 +67,28 @@ export const useForgotPassword = () => {
     },
   });
 };
+
+export const useVerifyOtp = () => {
+  return useMutation({
+    mutationFn: ({ email, otp }: { email: string; otp: string }) =>
+      authService.verifyOtp(email, otp),
+    onError: (error: any) => {
+      const message = error.response?.data?.error?.message || 'Invalid OTP. Please try again.';
+      toast.error(message);
+    },
+  });
+};
+
+export const useResetPassword = () => {
+  return useMutation({
+    mutationFn: ({ email, otp, newPassword }: { email: string; otp: string; newPassword: string }) =>
+      authService.resetPassword(email, otp, newPassword),
+    onSuccess: () => {
+      toast.success('Password reset successfully! Please login with your new password.');
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.error?.message || 'Failed to reset password.';
+      toast.error(message);
+    },
+  });
+};

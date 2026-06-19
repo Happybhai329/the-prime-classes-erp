@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import {
   Send,
   Plus,
@@ -84,7 +85,7 @@ export const CampaignManager: React.FC = () => {
         return c;
       }),
     );
-    alert('Campaign broadcast successfully triggered!');
+    toast.success('Campaign broadcast successfully triggered!');
   };
 
   return (

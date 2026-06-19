@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Body,
   Param,
@@ -12,7 +13,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { Permission } from '@prime/shared-types';
 import { ParentsService } from './parents.service';
-import { UpdateParentDto, QueryParentDto } from './dto';
+import { CreateParentDto, UpdateParentDto, QueryParentDto } from './dto';
 import { CurrentUser, Permissions } from '../../common/decorators';
 import { PermissionsGuard } from '../../common/guards';
 
@@ -22,6 +23,26 @@ import { PermissionsGuard } from '../../common/guards';
 @Controller('parents')
 export class ParentsController {
   constructor(private readonly parentsService: ParentsService) {}
+
+  @Post()
+  @Permissions(Permission.PARENT_WRITE)
+  @ApiOperation({ summary: 'Create a new parent account and profile' })
+  async create(
+    @CurrentUser('tenantId') tenantId: string,
+    @Body() dto: CreateParentDto,
+  ) {
+    return this.parentsService.create(tenantId, dto);
+  }
+
+  @Get('search')
+  @Permissions(Permission.PARENT_READ)
+  @ApiOperation({ summary: 'Search parents by name, email or phone' })
+  async search(
+    @CurrentUser('tenantId') tenantId: string,
+    @Query('q') query: string,
+  ) {
+    return this.parentsService.search(tenantId, query);
+  }
 
   @Get()
   @Permissions(Permission.PARENT_READ)
@@ -56,3 +77,4 @@ export class ParentsController {
     return this.parentsService.update(tenantId, id, dto);
   }
 }
+

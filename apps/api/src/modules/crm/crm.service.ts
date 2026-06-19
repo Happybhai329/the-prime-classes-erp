@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { LeadStatus, LeadSource, LeadActivityType } from '@prime/shared-types';
 import { buildPaginationMeta } from '../../common/utils/helpers';
+import { CreateLeadDto, UpdateLeadDto, LeadActivityDto } from './dto/crm.dto';
 
 @Injectable()
 export class CrmService {
@@ -197,7 +198,7 @@ export class CrmService {
     return lead;
   }
 
-  async createLead(tenantId: string, data: any, currentUserId?: string) {
+  async createLead(tenantId: string, data: CreateLeadDto & { status?: LeadStatus; source?: LeadSource }, currentUserId?: string) {
     // Check if phone or email already registered as lead to prevent duplicates
     if (data.phone) {
       const existing = await this.prisma.lead.findFirst({
@@ -238,7 +239,7 @@ export class CrmService {
         status: data.status || LeadStatus.INQUIRY,
         assignedCounselorId: autoAssignedCounselorId,
         notes: data.notes || '',
-        metaData: data.metaData || {},
+        metaData: (data.metaData as Prisma.InputJsonValue) || {},
       },
     });
 
@@ -262,7 +263,7 @@ export class CrmService {
     });
   }
 
-  async updateLead(tenantId: string, id: string, data: any, currentUserId?: string) {
+  async updateLead(tenantId: string, id: string, data: UpdateLeadDto, currentUserId?: string) {
     const lead = await this.prisma.lead.findFirst({
       where: { id, tenantId },
     });
@@ -281,7 +282,7 @@ export class CrmService {
         source: data.source ?? undefined,
         status: data.status ?? undefined,
         notes: data.notes ?? undefined,
-        metaData: data.metaData ?? undefined,
+        metaData: (data.metaData as Prisma.InputJsonValue) ?? undefined,
       },
     });
 
@@ -357,7 +358,7 @@ export class CrmService {
 
   // --- Lead Activities ---
 
-  async logActivity(tenantId: string, leadId: string, data: any, currentUserId?: string) {
+  async logActivity(tenantId: string, leadId: string, data: LeadActivityDto, currentUserId?: string) {
     const lead = await this.prisma.lead.findFirst({
       where: { id: leadId, tenantId },
     });

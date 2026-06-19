@@ -75,6 +75,14 @@ export const ParentListPage: React.FC = () => {
       <PageHeader
         title="Parents & Guardians"
         description={`${data?.meta?.total || 0} registered parents`}
+        actions={
+          <button
+            onClick={() => navigate('/parents/create')}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-white bg-amber-500 hover:bg-amber-600 transition shadow-sm"
+          >
+            Create Parent
+          </button>
+        }
       />
 
       <div className="mb-6">

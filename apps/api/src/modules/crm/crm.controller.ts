@@ -16,6 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { Permission, LeadStatus, LeadSource } from '@prime/shared-types';
 import { CrmService } from './crm.service';
+import { CreatePublicLeadDto, CreateLeadDto, UpdateLeadDto, LeadActivityDto } from './dto/crm.dto';
 import { CurrentUser, Permissions, Public } from '../../common/decorators';
 import { PermissionsGuard } from '../../common/guards';
 
@@ -32,7 +33,7 @@ export class CrmController {
   @ApiOperation({ summary: 'Submit lead public inquiry (landing page form)' })
   async createPublicLead(
     @Query('tenantId', ParseUUIDPipe) tenantId: string,
-    @Body() body: { firstName: string; lastName: string; email?: string; phone?: string; notes?: string; source?: LeadSource; metaData?: any },
+    @Body() body: CreatePublicLeadDto,
   ) {
     return this.crmService.createLead(tenantId, {
       ...body,
@@ -86,7 +87,7 @@ export class CrmController {
   async createLead(
     @CurrentUser('tenantId') tenantId: string,
     @CurrentUser('id') userId: string,
-    @Body() body: any,
+    @Body() body: CreateLeadDto,
   ) {
     return this.crmService.createLead(tenantId, body, userId);
   }
@@ -101,7 +102,7 @@ export class CrmController {
     @CurrentUser('tenantId') tenantId: string,
     @CurrentUser('id') userId: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: any,
+    @Body() body: UpdateLeadDto,
   ) {
     return this.crmService.updateLead(tenantId, id, body, userId);
   }
@@ -147,7 +148,7 @@ export class CrmController {
     @CurrentUser('tenantId') tenantId: string,
     @CurrentUser('id') userId: string,
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: any,
+    @Body() body: LeadActivityDto,
   ) {
     return this.crmService.logActivity(tenantId, id, body, userId);
   }

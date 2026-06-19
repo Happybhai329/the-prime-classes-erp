@@ -10,6 +10,7 @@ import { useBatches, useBatch } from '@/hooks/useBatches';
 import { ClipboardList, Plus, Trash2, CheckCircle, Play, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { OnlineTestMode } from '@prime/shared-types';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export const OnlineTestsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export const OnlineTestsPage: React.FC = () => {
   const [selectedBatchId, setSelectedBatchId] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isAutoOpen, setIsAutoOpen] = useState(false);
+  const [deleteTestId, setDeleteTestId] = useState<string | null>(null);
 
   // Form states for Create Custom Test
   const [title, setTitle] = useState('');
@@ -150,11 +152,12 @@ export const OnlineTestsPage: React.FC = () => {
     setHardPercent('20');
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this test schedule?')) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteTestId) return;
     try {
-      await deleteTestMutation.mutateAsync(id);
+      await deleteTestMutation.mutateAsync(deleteTestId);
       toast.success('Test deleted');
+      setDeleteTestId(null);
     } catch {
       toast.error('Delete failed');
     }
@@ -313,7 +316,7 @@ export const OnlineTestsPage: React.FC = () => {
                         {test.attempts?.length || 0} Attended
                       </div>
                       <button
-                        onClick={() => handleDelete(test.id)}
+                        onClick={() => setDeleteTestId(test.id)}
                         className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition border border-gray-100"
                         title="Delete Schedule"
                       >
@@ -674,6 +677,17 @@ export const OnlineTestsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!deleteTestId}
+        onClose={() => setDeleteTestId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Test Schedule"
+        message="Are you sure you want to permanently delete this test schedule? This action cannot be undone."
+        confirmLabel="Delete"
+        isDestructive={true}
+        isLoading={deleteTestMutation.isPending}
+      />
     </div>
   );
 };

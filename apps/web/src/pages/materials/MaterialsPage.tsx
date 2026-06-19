@@ -5,6 +5,8 @@ import { useMaterials, useMaterialCategories, useCreateMaterialCategory, useUplo
 import { useBatches } from '@/hooks/useBatches';
 import { Plus, Download, FileText, Trash2, Eye, FolderPlus, Info, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { DataTable } from '@/components/ui/DataTable';
 
 export const MaterialsPage: React.FC = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -24,6 +26,7 @@ export const MaterialsPage: React.FC = () => {
 
   // New Category State
   const [newCatName, setNewCatName] = useState('');
+  const [deleteMatId, setDeleteMatId] = useState<string | null>(null);
 
   // Queries & Mutations
   const { data: materialsData, isLoading } = useMaterials();
@@ -39,6 +42,88 @@ export const MaterialsPage: React.FC = () => {
 
   const materials = materialsData?.data || [];
   const batches = batchesData?.data || [];
+
+  const columns = [
+    {
+      key: 'title',
+      header: 'Title / Topic',
+      render: (mat: any) => (
+        <div className="flex gap-3 items-center">
+          <div className="h-9 w-9 shrink-0 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <FileText className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="font-semibold text-gray-900 line-clamp-1">{mat.title}</p>
+            <p className="text-xs text-gray-400">{mat.chapter || 'No Chapter'} • {mat.topic || 'No Topic'}</p>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'course',
+      header: 'Course / Exam',
+      render: (mat: any) => (
+        <span className="text-gray-600 font-medium">{mat.course || 'Global Library'}</span>
+      ),
+    },
+    {
+      key: 'batch',
+      header: 'Batch / Subject',
+      render: (mat: any) => (
+        <div>
+          <span className="text-gray-700 block text-xs font-semibold">{mat.batch?.name || 'All Batches'}</span>
+          <span className="text-gray-400 text-xs">{mat.subject?.name || 'All Subjects'}</span>
+        </div>
+      ),
+    },
+    {
+      key: 'size',
+      header: 'Size & Version',
+      render: (mat: any) => (
+        <div>
+          <p className="text-gray-600 font-semibold">{Math.round(mat.fileSize / 1024)} KB</p>
+          <p className="text-xs text-gray-400">Ver. {mat.version}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'uploader',
+      header: 'Uploaded By',
+      render: (mat: any) => (
+        <span className="text-gray-500">{mat.uploader?.email || '—'}</span>
+      ),
+    },
+    {
+      key: 'actions',
+      header: '',
+      className: 'text-right',
+      render: (mat: any) => (
+        <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => handleDownload(mat.id)}
+            className="p-2 text-gray-500 hover:text-amber-500 hover:bg-gray-100 rounded-lg transition"
+            title="Download file"
+          >
+            <Download className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => openLogs(mat.id)}
+            className="p-2 text-gray-500 hover:text-blue-500 hover:bg-gray-100 rounded-lg transition"
+            title="View access logs"
+          >
+            <Eye className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setDeleteMatId(mat.id)}
+            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+            title="Delete file"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
   const totalSizeMB = Math.round(materials.reduce((acc: number, m: any) => acc + m.fileSize, 0) / (1024 * 1024));
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
@@ -86,11 +171,12 @@ export const MaterialsPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this study material?')) return;
+  const handleDeleteConfirm = async () => {
+    if (!deleteMatId) return;
     try {
-      await deleteMaterialMutation.mutateAsync(id);
+      await deleteMaterialMutation.mutateAsync(deleteMatId);
       toast.success('Material deleted');
+      setDeleteMatId(null);
     } catch {
       toast.error('Deletion failed');
     }
@@ -160,85 +246,14 @@ export const MaterialsPage: React.FC = () => {
       </div>
 
       {/* Materials List Table */}
-      <div className="bg-white border border-gray-100 shadow-sm rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-50 flex items-center justify-between">
-          <h3 className="text-base font-bold text-gray-900">File Repository</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50/50 text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                <th className="px-6 py-4">Title / Topic</th>
-                <th className="px-6 py-4">Course / Exam</th>
-                <th className="px-6 py-4">Batch / Subject</th>
-                <th className="px-6 py-4">Size & Version</th>
-                <th className="px-6 py-4">Uploaded By</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50 text-sm">
-              {materials.map((mat: any) => (
-                <tr key={mat.id} className="hover:bg-gray-50/30 transition">
-                  <td className="px-6 py-4 flex gap-3 items-center">
-                    <div className="h-9 w-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                      <FileText className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900 line-clamp-1">{mat.title}</p>
-                      <p className="text-xs text-gray-400">{mat.chapter || 'No Chapter'} • {mat.topic || 'No Topic'}</p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600 font-medium">
-                    {mat.course || 'Global Library'}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="text-gray-700 block text-xs font-semibold">{mat.batch?.name || 'All Batches'}</span>
-                    <span className="text-gray-400 text-xs">{mat.subject?.name || 'All Subjects'}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-gray-600 font-semibold">{Math.round(mat.fileSize / 1024)} KB</p>
-                    <p className="text-xs text-gray-400">Ver. {mat.version}</p>
-                  </td>
-                  <td className="px-6 py-4 text-gray-500">
-                    {mat.uploader.email}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => handleDownload(mat.id)}
-                        className="p-2 text-gray-500 hover:text-amber-500 hover:bg-gray-100 rounded-lg transition"
-                        title="Download file"
-                      >
-                        <Download className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => openLogs(mat.id)}
-                        className="p-2 text-gray-500 hover:text-blue-500 hover:bg-gray-100 rounded-lg transition"
-                        title="View access logs"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(mat.id)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                        title="Delete file"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {materials.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-gray-400">
-                    No study materials uploaded yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      <div className="bg-white border border-gray-200 shadow-sm rounded-2xl overflow-hidden">
+        <DataTable
+          columns={columns}
+          data={materials}
+          isLoading={isLoading}
+          emptyTitle="No Study Materials Found"
+          emptyDescription="Configure categories and upload files to start sharing study materials."
+        />
       </div>
 
       {/* Upload Modal */}
@@ -419,17 +434,20 @@ export const MaterialsPage: React.FC = () => {
                 <p className="text-center py-6 text-gray-400 text-sm">No download or preview records yet.</p>
               )}
             </div>
-            <div className="flex justify-end">
-              <button
-                onClick={() => setIsLogsOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
-              >
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={!!deleteMatId}
+        onClose={() => setDeleteMatId(null)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Study Material"
+        message="Are you sure you want to permanently delete this study material? This action cannot be undone."
+        confirmLabel="Delete"
+        isDestructive={true}
+        isLoading={deleteMaterialMutation.isPending}
+      />
     </div>
   );
 };

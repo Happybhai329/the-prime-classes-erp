@@ -311,27 +311,140 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException('User profile not found with the provided identifier');
+      // Return success anyway to prevent email enumeration
+      return {
+        message: 'If an account exists with that identifier, an OTP has been sent.',
+      };
+    }
+
+    // Rate limiting: check if OTP was requested within last 2 minutes
+    if (user.passwordResetExpiry) {
+      const timeSinceLastRequest = Date.now() - user.passwordResetExpiry.getTime() + (15 * 60 * 1000);
+      if (timeSinceLastRequest < 2 * 60 * 1000) {
+        return {
+          message: 'If an account exists with that identifier, an OTP has been sent.',
+        };
+      }
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes validity
 
+    // Hash OTP before storing
+    const hashedOtp = await bcrypt.hash(otp, 10);
+
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
-        passwordResetToken: otp,
+        passwordResetToken: hashedOtp,
         passwordResetExpiry: expiry,
       },
     });
 
-    this.logger.log(`[PASSWORD RESET SYSTEM] Generated OTP for user ${user.email}: ${otp}`);
+    this.logger.log(`[PASSWORD RESET SYSTEM] Generated OTP for user ${user.email}`);
 
     // Send OTP via SMTP
     await this.mailService.sendPasswordResetOtpEmail(user.email, otp);
 
     return {
-      message: 'Password reset OTP has been generated successfully',
+      message: 'If an account exists with that identifier, an OTP has been sent.',
+    };
+  }
+
+  /**
+   * Step 2: Verify OTP — validates the OTP is correct and not expired.
+   */
+  async verifyOtp(email: string, otp: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { phone: email }],
+        deletedAt: null,
+      },
+    });
+
+    if (!user || !user.passwordResetToken || !user.passwordResetExpiry) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    // Check expiry
+    if (new Date() > user.passwordResetExpiry) {
+      // Clear expired token
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { passwordResetToken: null, passwordResetExpiry: null },
+      });
+      throw new UnauthorizedException('OTP has expired. Please request a new one.');
+    }
+
+    // Verify hashed OTP
+    const isOtpValid = await bcrypt.compare(otp, user.passwordResetToken);
+    if (!isOtpValid) {
+      throw new UnauthorizedException('Invalid OTP');
+    }
+
+    this.logger.log(`[PASSWORD RESET SYSTEM] OTP verified for user ${user.email}`);
+
+    return {
+      message: 'OTP verified successfully. You may now reset your password.',
+      verified: true,
+    };
+  }
+
+  /**
+   * Step 3: Reset Password — verifies OTP again and sets new password.
+   */
+  async resetPassword(email: string, otp: string, newPassword: string) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email }, { phone: email }],
+        deletedAt: null,
+      },
+    });
+
+    if (!user || !user.passwordResetToken || !user.passwordResetExpiry) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    // Check expiry
+    if (new Date() > user.passwordResetExpiry) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { passwordResetToken: null, passwordResetExpiry: null },
+      });
+      throw new UnauthorizedException('OTP has expired. Please request a new one.');
+    }
+
+    // Verify hashed OTP
+    const isOtpValid = await bcrypt.compare(otp, user.passwordResetToken);
+    if (!isOtpValid) {
+      throw new UnauthorizedException('Invalid OTP');
+    }
+
+    // Hash new password and clear reset tokens
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash: hashedPassword,
+          passwordResetToken: null,
+          passwordResetExpiry: null,
+          refreshTokenHash: null, // Force re-login on all devices
+        },
+      }),
+      // Revoke all active sessions
+      this.prisma.userSession.updateMany({
+        where: { userId: user.id, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+
+    this.logger.log(`[PASSWORD RESET SYSTEM] Password reset completed for user ${user.email}`);
+
+    return {
+      message: 'Password has been reset successfully. Please login with your new password.',
     };
   }
 }
+

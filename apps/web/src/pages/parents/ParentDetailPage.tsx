@@ -23,6 +23,14 @@ export const ParentDetailPage: React.FC = () => {
       <PageHeader
         title="Parent Profile"
         description="View contact and linked student details"
+        actions={
+          <button
+            onClick={() => navigate(`/parents/${id}/edit`)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-white bg-amber-500 hover:bg-amber-600 transition shadow-sm"
+          >
+            Edit Profile
+          </button>
+        }
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

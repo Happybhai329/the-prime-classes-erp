@@ -4,6 +4,7 @@ import { useOnlineTestDetails, useStartAttempt, useSaveAttemptState, useSubmitAt
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { ChevronLeft, ChevronRight, ShieldAlert, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export const OnlineExamPage: React.FC = () => {
   const { testId } = useParams<{ testId: string }>();
@@ -13,6 +14,7 @@ export const OnlineExamPage: React.FC = () => {
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [visitedQuestions, setVisitedQuestions] = useState<Record<string, boolean>>({});
+  const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({});
   const [timeSpent, setTimeSpent] = useState<Record<string, number>>({}); // questionId -> seconds
 
@@ -140,8 +142,7 @@ export const OnlineExamPage: React.FC = () => {
     handleSubmitExam(true);
   };
 
-  const handleSubmitExam = async (force = false) => {
-    if (!force && !confirm('Are you sure you want to submit your exam?')) return;
+  const handleSubmitExam = async (_force = false) => {
     if (!attemptId || !test) return;
 
     isSubmittingRef.current = true;
@@ -425,7 +426,7 @@ export const OnlineExamPage: React.FC = () => {
           </div>
 
           <button
-            onClick={() => handleSubmitExam(false)}
+            onClick={() => setShowSubmitConfirm(true)}
             disabled={submitAttemptMutation.isPending}
             className="w-full py-3 bg-red-600 hover:bg-red-700 disabled:bg-gray-800 disabled:text-gray-500 text-white font-bold rounded-xl text-xs shadow-sm transition uppercase tracking-wider"
           >
@@ -433,6 +434,20 @@ export const OnlineExamPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showSubmitConfirm}
+        onClose={() => setShowSubmitConfirm(false)}
+        onConfirm={() => {
+          setShowSubmitConfirm(false);
+          handleSubmitExam(true);
+        }}
+        title="Submit Exam"
+        message="Are you sure you want to submit your exam? You cannot modify your answers after submitting."
+        confirmLabel="Submit"
+        isDestructive={false}
+        isLoading={submitAttemptMutation.isPending}
+      />
     </div>
   );
 };

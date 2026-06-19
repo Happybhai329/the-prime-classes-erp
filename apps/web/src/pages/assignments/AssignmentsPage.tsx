@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAuthStore } from '@/store/auth.store';
 import { useAssignments, useAssignmentDetails, useCreateAssignment, useDeleteAssignment, useSubmitAssignment, useGradeAssignment } from '@/hooks/useAssignments';
 import { useBatches, useBatch } from '@/hooks/useBatches';
@@ -17,6 +18,8 @@ export const AssignmentsPage: React.FC = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSubmitOpen, setIsSubmitOpen] = useState(false);
   const [isGradingOpen, setIsGradingOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [assignmentToDelete, setAssignmentToDelete] = useState<string | null>(null);
 
   // Form states for Create Assignment
   const [title, setTitle] = useState('');
@@ -88,14 +91,22 @@ export const AssignmentsPage: React.FC = () => {
     }
   };
 
-  const handleDeleteAssignment = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this assignment?')) return;
+  const handleDeleteAssignment = (id: string) => {
+    setAssignmentToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!assignmentToDelete) return;
     try {
-      await deleteAssignmentMutation.mutateAsync(id);
+      await deleteAssignmentMutation.mutateAsync(assignmentToDelete);
       toast.success('Assignment deleted');
-      if (selectedAssignmentId === id) setSelectedAssignmentId(null);
+      if (selectedAssignmentId === assignmentToDelete) setSelectedAssignmentId(null);
     } catch {
       toast.error('Deletion failed');
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setAssignmentToDelete(null);
     }
   };
 
@@ -620,6 +631,20 @@ export const AssignmentsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setAssignmentToDelete(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Assignment"
+        message="Are you sure you want to delete this assignment? This will permanently delete the assignment and all associated student submissions."
+        confirmLabel="Delete"
+        isDestructive={true}
+        isLoading={deleteAssignmentMutation.isPending}
+      />
     </div>
   );
 };
