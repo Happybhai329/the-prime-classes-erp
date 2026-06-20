@@ -6,7 +6,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
-import { RedisThrottlerStorage, RedisThrottlerStorageModule } from './common/throttle/redis-throttle.storage';
+
 
 // Core modules
 import { DatabaseModule } from './database/database.module';
@@ -78,14 +78,11 @@ import { validate } from './common/config/env.validation';
       validate,
     }),
 
-    // Redis Throttler Storage
-    RedisThrottlerStorageModule,
-
     // Rate limiting
     ThrottlerModule.forRootAsync({
-      imports: [ConfigModule, RedisThrottlerStorageModule],
-      inject: [ConfigService, RedisThrottlerStorage],
-      useFactory: (config: ConfigService, storage: RedisThrottlerStorage) => ({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
         throttlers: [
           {
             name: 'short',
@@ -103,7 +100,6 @@ import { validate } from './common/config/env.validation';
             limit: config.get<number>('THROTTLE_LIMIT', 100),
           },
         ],
-        storage,
       }),
     }),
 
