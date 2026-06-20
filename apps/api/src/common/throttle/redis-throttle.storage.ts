@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import Redis from 'ioredis';
@@ -98,3 +98,9 @@ export class RedisThrottlerStorage implements ThrottlerStorage, OnModuleDestroy 
     }
   }
 }
+
+@Module({
+  providers: [RedisThrottlerStorage],
+  exports: [RedisThrottlerStorage],
+})
+export class RedisThrottlerStorageModule {}

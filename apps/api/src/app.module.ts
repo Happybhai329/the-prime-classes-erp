@@ -6,7 +6,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
-import { RedisThrottlerStorage } from './common/throttle/redis-throttle.storage';
+import { RedisThrottlerStorage, RedisThrottlerStorageModule } from './common/throttle/redis-throttle.storage';
 
 // Core modules
 import { DatabaseModule } from './database/database.module';
@@ -78,9 +78,12 @@ import { validate } from './common/config/env.validation';
       validate,
     }),
 
+    // Redis Throttler Storage
+    RedisThrottlerStorageModule,
+
     // Rate limiting
     ThrottlerModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, RedisThrottlerStorageModule],
       inject: [ConfigService, RedisThrottlerStorage],
       useFactory: (config: ConfigService, storage: RedisThrottlerStorage) => ({
         throttlers: [
@@ -173,7 +176,6 @@ import { validate } from './common/config/env.validation';
     SupportDeskModule,
   ],
   providers: [
-    RedisThrottlerStorage,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
