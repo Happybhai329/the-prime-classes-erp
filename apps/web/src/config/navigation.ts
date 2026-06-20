@@ -16,6 +16,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { Permission } from '@prime/shared-types';
+import type React from 'react';
 
 export interface NavItem {
   label: string;
