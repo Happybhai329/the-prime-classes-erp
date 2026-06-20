@@ -1,7 +1,9 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ThrottlerStorage, ThrottlerStorageRecord } from '@nestjs/throttler';
+import { ThrottlerStorage } from '@nestjs/throttler';
 import Redis from 'ioredis';
+
+type ThrottlerStorageRecord = Awaited<ReturnType<ThrottlerStorage['increment']>>;
 
 @Injectable()
 export class RedisThrottlerStorage implements ThrottlerStorage, OnModuleDestroy {
@@ -26,33 +28,67 @@ export class RedisThrottlerStorage implements ThrottlerStorage, OnModuleDestroy 
     throttlerName: string,
   ): Promise<ThrottlerStorageRecord> {
     const redisKey = `throttle:${throttlerName}:${key}`;
+    const blockKey = `${redisKey}:blocked`;
 
     if (this.redis.status === 'wait') {
       await this.redis.connect();
     }
 
-    const ttlSeconds = Math.ceil(ttl / 1000);
+    // Check if the block key exists in Redis
+    let timeToBlockExpire = await this.redis.ttl(blockKey);
+    let isBlocked = timeToBlockExpire > 0;
 
-    const pipeline = this.redis.pipeline();
-    pipeline.incr(redisKey);
-    pipeline.ttl(redisKey);
+    let totalHits: number;
+    let timeToExpire: number;
 
-    const results = await pipeline.exec();
-    if (!results) {
-      throw new Error('Redis pipeline execution failed');
-    }
+    if (isBlocked) {
+      // Client is already blocked. Fetch their current hit count and expiry.
+      const pipeline = this.redis.pipeline();
+      pipeline.get(redisKey);
+      pipeline.ttl(redisKey);
+      const results = await pipeline.exec();
 
-    const totalHits = results[0][1] as number;
-    let timeToExpire = results[1][1] as number;
+      const hitsStr = results ? (results[0][1] as string | null) : null;
+      totalHits = hitsStr ? parseInt(hitsStr, 10) : limit + 1;
+      const ttlSec = results ? (results[1][1] as number) : -2;
+      timeToExpire = ttlSec > 0 ? ttlSec : 0;
+    } else {
+      // Client is not blocked. Increment hits.
+      const pipeline = this.redis.pipeline();
+      pipeline.incr(redisKey);
+      pipeline.ttl(redisKey);
+      const results = await pipeline.exec();
+      if (!results) {
+        throw new Error('Redis pipeline execution failed');
+      }
 
-    if (totalHits === 1 || timeToExpire === -1) {
-      await this.redis.expire(redisKey, ttlSeconds);
-      timeToExpire = ttlSeconds;
+      totalHits = results[0][1] as number;
+      const ttlSec = results[1][1] as number;
+
+      const ttlSeconds = Math.ceil(ttl / 1000);
+      if (totalHits === 1 || ttlSec === -1) {
+        await this.redis.expire(redisKey, ttlSeconds);
+        timeToExpire = ttlSeconds;
+      } else {
+        timeToExpire = ttlSec > 0 ? ttlSec : 0;
+      }
+
+      // Check if this hit exceeds the limit
+      if (totalHits > limit) {
+        isBlocked = true;
+        const blockDurationSeconds = Math.ceil(blockDuration / 1000);
+        await this.redis.set(blockKey, '1', 'EX', blockDurationSeconds);
+        timeToBlockExpire = blockDurationSeconds;
+      } else {
+        timeToBlockExpire = 0;
+      }
     }
 
     return {
       totalHits,
       timeToExpire: Math.max(0, timeToExpire),
+      isBlocked,
+      timeToBlockExpire: Math.max(0, timeToBlockExpire),
     };
   }
 

@@ -10,7 +10,7 @@ export enum Environment {
 
 class EnvironmentVariables {
   @IsEnum(Environment)
-  NODE_ENV: Environment;
+  NODE_ENV!: Environment;
 
   @IsNumber()
   PORT: number = 3000;
@@ -19,7 +19,7 @@ class EnvironmentVariables {
   API_PREFIX: string = 'api/v1';
 
   @IsString()
-  DATABASE_URL: string;
+  DATABASE_URL!: string;
 
   @IsString()
   REDIS_HOST: string = 'localhost';
@@ -32,13 +32,13 @@ class EnvironmentVariables {
   REDIS_PASSWORD?: string;
 
   @IsString()
-  JWT_ACCESS_SECRET: string;
+  JWT_ACCESS_SECRET!: string;
 
   @IsString()
   JWT_ACCESS_EXPIRY: string = '15m';
 
   @IsString()
-  JWT_REFRESH_SECRET: string;
+  JWT_REFRESH_SECRET!: string;
 
   @IsString()
   JWT_REFRESH_EXPIRY: string = '7d';
@@ -50,10 +50,10 @@ class EnvironmentVariables {
   MINIO_PORT: number = 9000;
 
   @IsString()
-  MINIO_ACCESS_KEY: string;
+  MINIO_ACCESS_KEY!: string;
 
   @IsString()
-  MINIO_SECRET_KEY: string;
+  MINIO_SECRET_KEY!: string;
 
   @IsString()
   @IsOptional()
