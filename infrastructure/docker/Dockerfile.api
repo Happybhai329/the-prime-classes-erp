@@ -35,7 +35,7 @@ RUN pnpm --filter @prime/api build
 
 # Stage 2: Production
 FROM node:20.15.0-alpine3.20 AS production
-WORKDIR /app
+WORKDIR /app/apps/api
 
 # Install dumb-init and clear cache
 RUN apk add --no-cache dumb-init
@@ -46,10 +46,9 @@ LABEL maintainer="The Prime Classes <admin@theprimeclasses.com>" \
       description="Production Dockerfile for Prime Classes ERP API"
 
 # Copy built output with node user ownership
-COPY --from=builder --chown=node:node /app/apps/api/dist ./dist
-COPY --from=builder --chown=node:node /app/apps/api/prisma ./prisma
-COPY --from=builder --chown=node:node /app/apps/api/package.json ./
-COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/node_modules /app/node_modules
+COPY --from=builder --chown=node:node /app/packages/shared-types /app/packages/shared-types
+COPY --from=builder --chown=node:node /app/apps/api /app/apps/api
 
 # Set environment
 ENV NODE_ENV=production
