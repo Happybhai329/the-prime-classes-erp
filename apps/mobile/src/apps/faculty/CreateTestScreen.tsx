@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, Text, SafeAreaView, ScrollView, Alert } from 'react-native';
+import { StyleSheet, View, Text, SafeAreaView, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../state/useAuthStore';
 import { Input } from '../../components/Input';
