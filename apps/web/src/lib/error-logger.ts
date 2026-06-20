@@ -19,6 +19,7 @@ class ErrorLogger {
         context: {
           route: window.location.pathname,
         },
+        errorInfo: { source, lineno, colno },
       });
       return false; // let browser handle normally as well
     };
