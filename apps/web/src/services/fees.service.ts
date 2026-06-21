@@ -122,26 +122,26 @@ export const feesService = {
   // --- Reports ---
   getDailyCollectionReport: async (params?: Record<string, any>) => {
     const res = await api.get('/fees/reports/daily-collection', { params });
-    return res.data;
+    return res.data.data;
   },
   getMonthlyCollectionReport: async (params?: Record<string, any>) => {
     const res = await api.get('/fees/reports/monthly-collection', { params });
-    return res.data;
+    return res.data.data;
   },
   getStudentLedgerReport: async (studentId: string) => {
     const res = await api.get(`/fees/reports/student-ledger/${studentId}`);
-    return res.data;
+    return res.data.data;
   },
   getBatchRevenueReport: async (batchId: string, params?: Record<string, any>) => {
     const res = await api.get(`/fees/reports/batch-revenue/${batchId}`, { params });
-    return res.data;
+    return res.data.data;
   },
   getOutstandingReport: async (params?: Record<string, any>) => {
     const res = await api.get('/fees/reports/outstanding', { params });
-    return res.data;
+    return res.data.data;
   },
   getParentLedgerReport: async () => {
     const res = await api.get('/fees/reports/parent-ledger');
-    return res.data;
+    return res.data.data;
   },
 };

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from './components/guards/ProtectedRoute';
 import { AppShell } from './components/layout/AppShell';
 import { useAuthStore } from './store/auth.store';
+import { Permission } from '@prime/shared-types';
 
 // Auth Pages
 const LoginPage = lazy(() => import('./pages/auth/LoginPage').then(m => ({ default: m.LoginPage })));
@@ -142,100 +143,100 @@ function App() {
           <Route path="dashboard" element={<DashboardPage />} />
 
           {/* Students */}
-          <Route path="students" element={<StudentListPage />} />
-          <Route path="students/create" element={<CreateStudentPage />} />
-          <Route path="students/:id" element={<StudentDetailPage />} />
-          <Route path="students/:id/edit" element={<EditStudentPage />} />
+          <Route path="students" element={<ProtectedRoute allowedPermissions={[Permission.STUDENT_READ]}><StudentListPage /></ProtectedRoute>} />
+          <Route path="students/create" element={<ProtectedRoute allowedPermissions={[Permission.STUDENT_WRITE]}><CreateStudentPage /></ProtectedRoute>} />
+          <Route path="students/:id" element={<ProtectedRoute allowedPermissions={[Permission.STUDENT_READ, Permission.STUDENT_READ_OWN]}><StudentDetailPage /></ProtectedRoute>} />
+          <Route path="students/:id/edit" element={<ProtectedRoute allowedPermissions={[Permission.STUDENT_WRITE]}><EditStudentPage /></ProtectedRoute>} />
 
           {/* Parents */}
-          <Route path="parents" element={<ParentListPage />} />
-          <Route path="parents/create" element={<CreateParentPage />} />
-          <Route path="parents/:id" element={<ParentDetailPage />} />
-          <Route path="parents/:id/edit" element={<EditParentPage />} />
+          <Route path="parents" element={<ProtectedRoute allowedPermissions={[Permission.PARENT_READ]}><ParentListPage /></ProtectedRoute>} />
+          <Route path="parents/create" element={<ProtectedRoute allowedPermissions={[Permission.PARENT_WRITE]}><CreateParentPage /></ProtectedRoute>} />
+          <Route path="parents/:id" element={<ProtectedRoute allowedPermissions={[Permission.PARENT_READ, Permission.PARENT_READ_OWN]}><ParentDetailPage /></ProtectedRoute>} />
+          <Route path="parents/:id/edit" element={<ProtectedRoute allowedPermissions={[Permission.PARENT_WRITE]}><EditParentPage /></ProtectedRoute>} />
 
           {/* Batches */}
-          <Route path="batches" element={<BatchListPage />} />
-          <Route path="batches/create" element={<CreateBatchPage />} />
-          <Route path="batches/:id" element={<BatchDetailPage />} />
-          <Route path="batches/:id/edit" element={<EditBatchPage />} />
+          <Route path="batches" element={<ProtectedRoute allowedPermissions={[Permission.BATCH_READ]}><BatchListPage /></ProtectedRoute>} />
+          <Route path="batches/create" element={<ProtectedRoute allowedPermissions={[Permission.BATCH_WRITE]}><CreateBatchPage /></ProtectedRoute>} />
+          <Route path="batches/:id" element={<ProtectedRoute allowedPermissions={[Permission.BATCH_READ]}><BatchDetailPage /></ProtectedRoute>} />
+          <Route path="batches/:id/edit" element={<ProtectedRoute allowedPermissions={[Permission.BATCH_WRITE]}><EditBatchPage /></ProtectedRoute>} />
 
           {/* Attendance */}
           <Route path="attendance">
-            <Route index element={<AttendanceDashboardPage />} />
-            <Route path="mark" element={<MarkAttendancePage />} />
-            <Route path="history" element={<AttendanceHistoryPage />} />
-            <Route path="reports" element={<AttendanceReportsPage />} />
+            <Route index element={<ProtectedRoute allowedPermissions={[Permission.ATTENDANCE_READ_ALL, Permission.ATTENDANCE_READ_OWN]}><AttendanceDashboardPage /></ProtectedRoute>} />
+            <Route path="mark" element={<ProtectedRoute allowedPermissions={[Permission.ATTENDANCE_MARK]}><MarkAttendancePage /></ProtectedRoute>} />
+            <Route path="history" element={<ProtectedRoute allowedPermissions={[Permission.ATTENDANCE_READ_ALL, Permission.ATTENDANCE_READ_OWN]}><AttendanceHistoryPage /></ProtectedRoute>} />
+            <Route path="reports" element={<ProtectedRoute allowedPermissions={[Permission.ATTENDANCE_REPORT]}><AttendanceReportsPage /></ProtectedRoute>} />
           </Route>
 
           {/* Tests */}
           <Route path="tests">
-            <Route index element={<TestListPage />} />
-            <Route path="create" element={<CreateTestPage />} />
-            <Route path=":id" element={<TestDetailPage />} />
-            <Route path=":id/edit" element={<EditTestPage />} />
-            <Route path=":id/marks" element={<EnterMarksPage />} />
-            <Route path=":id/merit-list" element={<MeritListPage />} />
+            <Route index element={<ProtectedRoute allowedPermissions={[Permission.TEST_VIEW_ALL, Permission.TEST_VIEW_OWN]}><TestListPage /></ProtectedRoute>} />
+            <Route path="create" element={<ProtectedRoute allowedPermissions={[Permission.TEST_CREATE]}><CreateTestPage /></ProtectedRoute>} />
+            <Route path=":id" element={<ProtectedRoute allowedPermissions={[Permission.TEST_VIEW_ALL, Permission.TEST_VIEW_OWN]}><TestDetailPage /></ProtectedRoute>} />
+            <Route path=":id/edit" element={<ProtectedRoute allowedPermissions={[Permission.TEST_EDIT]}><EditTestPage /></ProtectedRoute>} />
+            <Route path=":id/marks" element={<ProtectedRoute allowedPermissions={[Permission.TEST_MARKS_ENTRY]}><EnterMarksPage /></ProtectedRoute>} />
+            <Route path=":id/merit-list" element={<ProtectedRoute allowedPermissions={[Permission.TEST_VIEW_ALL, Permission.TEST_VIEW_OWN]}><MeritListPage /></ProtectedRoute>} />
           </Route>
 
           {/* Reports, Analytics & Parent Portal */}
-          <Route path="reports" element={<ReportsPage />} />
-          <Route path="reports/analytics" element={<StudentAnalyticsPage />} />
-          <Route path="parent-portal" element={<ParentDashboardPage />} />
-          <Route path="analytics/student/:studentId" element={<PredictionDashboard />} />
-          <Route path="analytics/faculty" element={<FacultyInsights />} />
+          <Route path="reports" element={<ProtectedRoute allowedPermissions={[Permission.REPORT_ALL, Permission.REPORT_BATCH, Permission.REPORT_OWN]}><ReportsPage /></ProtectedRoute>} />
+          <Route path="reports/analytics" element={<ProtectedRoute allowedPermissions={[Permission.REPORT_ALL, Permission.REPORT_BATCH]}><StudentAnalyticsPage /></ProtectedRoute>} />
+          <Route path="parent-portal" element={<ProtectedRoute allowedPermissions={[Permission.PARENT_READ_OWN]}><ParentDashboardPage /></ProtectedRoute>} />
+          <Route path="analytics/student/:studentId" element={<ProtectedRoute allowedPermissions={[Permission.REPORT_ALL, Permission.REPORT_BATCH, Permission.REPORT_OWN]}><PredictionDashboard /></ProtectedRoute>} />
+          <Route path="analytics/faculty" element={<ProtectedRoute allowedPermissions={[Permission.REPORT_ALL, Permission.REPORT_BATCH]}><FacultyInsights /></ProtectedRoute>} />
 
           {/* Communication & Documents */}
-          <Route path="notices" element={<NoticesPage />} />
-          <Route path="announcements" element={<AnnouncementsPage />} />
-          <Route path="announcements/create" element={<CreateAnnouncementPage />} />
-          <Route path="announcements/:id" element={<AnnouncementDetailPage />} />
-          <Route path="announcements/:id/edit" element={<EditAnnouncementPage />} />
-          <Route path="tickets" element={<SupportTicketsPage />} />
-          <Route path="documents" element={<DocumentsPage />} />
+          <Route path="notices" element={<ProtectedRoute allowedPermissions={[Permission.NOTICE_VIEW]}><NoticesPage /></ProtectedRoute>} />
+          <Route path="announcements" element={<ProtectedRoute allowedPermissions={[Permission.ANNOUNCEMENT_VIEW]}><AnnouncementsPage /></ProtectedRoute>} />
+          <Route path="announcements/create" element={<ProtectedRoute allowedPermissions={[Permission.ANNOUNCEMENT_CREATE]}><CreateAnnouncementPage /></ProtectedRoute>} />
+          <Route path="announcements/:id" element={<ProtectedRoute allowedPermissions={[Permission.ANNOUNCEMENT_VIEW]}><AnnouncementDetailPage /></ProtectedRoute>} />
+          <Route path="announcements/:id/edit" element={<ProtectedRoute allowedPermissions={[Permission.ANNOUNCEMENT_CREATE]}><EditAnnouncementPage /></ProtectedRoute>} />
+          <Route path="tickets" element={<ProtectedRoute allowedPermissions={[Permission.TICKET_VIEW_ALL, Permission.TICKET_VIEW_OWN]}><SupportTicketsPage /></ProtectedRoute>} />
+          <Route path="documents" element={<ProtectedRoute allowedPermissions={[Permission.DOCUMENT_VIEW_ALL, Permission.DOCUMENT_VIEW_OWN]}><DocumentsPage /></ProtectedRoute>} />
 
           {/* Audit */}
-          <Route path="audit" element={<AuditDashboardPage />} />
+          <Route path="audit" element={<ProtectedRoute allowedPermissions={[Permission.AUDIT_VIEW]}><AuditDashboardPage /></ProtectedRoute>} />
 
           {/* LMS & Online Testing (Phase 5) */}
-          <Route path="materials" element={<MaterialsPage />} />
-          <Route path="library" element={<DigitalLibraryPage />} />
-          <Route path="assignments" element={<AssignmentsPage />} />
-          <Route path="online-tests" element={<OnlineTestsPage />} />
-          <Route path="online-tests/exam/:testId" element={<OnlineExamPage />} />
-          <Route path="question-bank" element={<QuestionBankPage />} />
+          <Route path="materials" element={<ProtectedRoute allowedPermissions={[Permission.MATERIAL_DOWNLOAD, Permission.MATERIAL_UPLOAD]}><MaterialsPage /></ProtectedRoute>} />
+          <Route path="library" element={<ProtectedRoute allowedPermissions={[Permission.MATERIAL_DOWNLOAD, Permission.MATERIAL_UPLOAD]}><DigitalLibraryPage /></ProtectedRoute>} />
+          <Route path="assignments" element={<ProtectedRoute allowedPermissions={[Permission.ASSIGNMENT_SUBMIT, Permission.ASSIGNMENT_CREATE, Permission.ASSIGNMENT_REVIEW]}><AssignmentsPage /></ProtectedRoute>} />
+          <Route path="online-tests" element={<ProtectedRoute allowedPermissions={[Permission.ONLINE_TEST_TAKE, Permission.ONLINE_TEST_MANAGE]}><OnlineTestsPage /></ProtectedRoute>} />
+          <Route path="online-tests/exam/:testId" element={<ProtectedRoute allowedPermissions={[Permission.ONLINE_TEST_TAKE]}><OnlineExamPage /></ProtectedRoute>} />
+          <Route path="question-bank" element={<ProtectedRoute allowedPermissions={[Permission.QUESTION_BANK_MANAGE]}><QuestionBankPage /></ProtectedRoute>} />
           <Route path="leaderboard" element={<LeaderboardPage />} />
 
           {/* Phase 9 CRM & Admissions Routes */}
           <Route path="crm">
-            <Route path="dashboard" element={<CrmDashboard />} />
-            <Route path="counselor" element={<CounselorDashboard />} />
-            <Route path="campaigns" element={<CampaignManager />} />
-            <Route path="website-builder" element={<WebsiteBuilder />} />
+            <Route path="dashboard" element={<ProtectedRoute allowedPermissions={[Permission.COUNSELOR_DASHBOARD_VIEW]}><CrmDashboard /></ProtectedRoute>} />
+            <Route path="counselor" element={<ProtectedRoute allowedPermissions={[Permission.COUNSELOR_MANAGE]}><CounselorDashboard /></ProtectedRoute>} />
+            <Route path="campaigns" element={<ProtectedRoute allowedPermissions={[Permission.CAMPAIGN_MANAGE]}><CampaignManager /></ProtectedRoute>} />
+            <Route path="website-builder" element={<ProtectedRoute allowedPermissions={[Permission.WEBSITE_BUILDER_MANAGE]}><WebsiteBuilder /></ProtectedRoute>} />
           </Route>
 
           {/* Faculty */}
-          <Route path="faculty" element={<FacultyListPage />} />
-          <Route path="faculty/create" element={<CreateFacultyPage />} />
-          <Route path="faculty/:id" element={<FacultyDetailPage />} />
-          <Route path="faculty/:id/edit" element={<EditFacultyPage />} />
+          <Route path="faculty" element={<ProtectedRoute allowedPermissions={[Permission.FACULTY_READ]}><FacultyListPage /></ProtectedRoute>} />
+          <Route path="faculty/create" element={<ProtectedRoute allowedPermissions={[Permission.FACULTY_WRITE]}><CreateFacultyPage /></ProtectedRoute>} />
+          <Route path="faculty/:id" element={<ProtectedRoute allowedPermissions={[Permission.FACULTY_READ]}><FacultyDetailPage /></ProtectedRoute>} />
+          <Route path="faculty/:id/edit" element={<ProtectedRoute allowedPermissions={[Permission.FACULTY_WRITE]}><EditFacultyPage /></ProtectedRoute>} />
 
           {/* Users */}
-          <Route path="users" element={<UsersPage />} />
+          <Route path="users" element={<ProtectedRoute allowedPermissions={[Permission.USER_READ]}><UsersPage /></ProtectedRoute>} />
 
           {/* Subjects */}
-          <Route path="subjects" element={<SubjectsPage />} />
+          <Route path="subjects" element={<ProtectedRoute allowedPermissions={[Permission.SUBJECT_READ]}><SubjectsPage /></ProtectedRoute>} />
 
           {/* Fees (Phase 4) */}
           <Route path="fees">
-            <Route index element={<FeeDashboardPage />} />
-            <Route path="plans" element={<FeePlansPage />} />
-            <Route path="plans/:id" element={<FeePlanDetailPage />} />
-            <Route path="student-fees" element={<StudentFeesPage />} />
-            <Route path="payments" element={<PaymentsPage />} />
-            <Route path="payments/record" element={<RecordPaymentPage />} />
-            <Route path="receipts" element={<ReceiptsPage />} />
-            <Route path="refunds" element={<RefundsPage />} />
-            <Route path="reports" element={<FeeReportsPage />} />
+            <Route index element={<ProtectedRoute allowedPermissions={[Permission.FEE_DASHBOARD, Permission.FEE_VIEW_OWN]}><FeeDashboardPage /></ProtectedRoute>} />
+            <Route path="plans" element={<ProtectedRoute allowedPermissions={[Permission.FEE_STRUCTURE_MANAGE]}><FeePlansPage /></ProtectedRoute>} />
+            <Route path="plans/:id" element={<ProtectedRoute allowedPermissions={[Permission.FEE_STRUCTURE_MANAGE]}><FeePlanDetailPage /></ProtectedRoute>} />
+            <Route path="student-fees" element={<ProtectedRoute allowedPermissions={[Permission.FEE_VIEW_ALL, Permission.FEE_VIEW_OWN]}><StudentFeesPage /></ProtectedRoute>} />
+            <Route path="payments" element={<ProtectedRoute allowedPermissions={[Permission.FEE_VIEW_ALL]}><PaymentsPage /></ProtectedRoute>} />
+            <Route path="payments/record" element={<ProtectedRoute allowedPermissions={[Permission.FEE_COLLECT]}><RecordPaymentPage /></ProtectedRoute>} />
+            <Route path="receipts" element={<ProtectedRoute allowedPermissions={[Permission.FEE_RECEIPT_VIEW]}><ReceiptsPage /></ProtectedRoute>} />
+            <Route path="refunds" element={<ProtectedRoute allowedPermissions={[Permission.FEE_REFUND_MANAGE]}><RefundsPage /></ProtectedRoute>} />
+            <Route path="reports" element={<ProtectedRoute allowedPermissions={[Permission.FEE_REPORT]}><FeeReportsPage /></ProtectedRoute>} />
           </Route>
           {/* SaaS & Franchise (Phase 8) */}
           <Route
