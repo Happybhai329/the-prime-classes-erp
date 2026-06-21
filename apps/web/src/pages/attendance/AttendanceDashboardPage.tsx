@@ -56,7 +56,7 @@ export const AttendanceDashboardPage: React.FC = () => {
         <div className="lg:col-span-2 card p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Today's Batch Coverage</h3>
           <div className="space-y-4">
-            {data?.batchWiseSummary.map((batch) => (
+            {(data?.batchWiseSummary || []).map((batch) => (
               <div key={batch.batchId} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                 <div>
                   <h4 className="font-medium text-gray-900">{batch.batchName}</h4>
@@ -79,7 +79,7 @@ export const AttendanceDashboardPage: React.FC = () => {
                 )}
               </div>
             ))}
-            {data?.batchWiseSummary.length === 0 && (
+            {(!data?.batchWiseSummary || data.batchWiseSummary.length === 0) && (
               <p className="text-gray-500 text-center py-4">No active batches found.</p>
             )}
           </div>
