@@ -67,6 +67,7 @@ model Tenant {
   materialAccessLogs MaterialAccessLog[]
   assignments        Assignment[]
   assignmentSubmissions AssignmentSubmission[]
+  calendarEvents     CalendarEvent[]
   questions          Question[]
   questionBanks      QuestionBank[]
   onlineTests        OnlineTest[]
@@ -402,6 +403,7 @@ model Batch {
   assignments    Assignment[]
   onlineTests    OnlineTest[]
   videoLectures  VideoLecture[]
+  calendarEvents CalendarEvent[]
 
   @@unique([tenantId, code])
   @@index([tenantId])
@@ -1376,6 +1378,8 @@ model Assignment {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
   deletedAt   DateTime? @map("deleted_at")
+  type        AssignmentType @default(ASSIGNMENT)
+  isPublished Boolean        @default(true) @map("is_published")
 
   // Relations
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
@@ -3345,4 +3349,37 @@ enum ResourceVisibility {
 enum PublicationStatus {
   PUBLISHED
   REVOKED
+}
+
+enum AssignmentType {
+  HOMEWORK
+  ASSIGNMENT
+}
+
+enum CalendarEventType {
+  HOLIDAY
+  EVENT
+  EXAM
+  IMPORTANT_DATE
+}
+
+model CalendarEvent {
+  id          String            @id @default(uuid()) @db.Uuid
+  tenantId    String            @map("tenant_id") @db.Uuid
+  title       String            @db.VarChar(255)
+  description String?           @db.Text
+  startDate   DateTime          @map("start_date") @db.Timestamp
+  endDate     DateTime          @map("end_date") @db.Timestamp
+  eventType   CalendarEventType @map("event_type")
+  batchId     String?           @map("batch_id") @db.Uuid
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  batch       Batch?            @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([batchId])
+  @@map("calendar_events")
 }

@@ -323,6 +323,18 @@ export enum AchievementType {
   LEVEL_UP = 'LEVEL_UP',
 }
 
+export enum AssignmentType {
+  HOMEWORK = 'HOMEWORK',
+  ASSIGNMENT = 'ASSIGNMENT',
+}
+
+export enum CalendarEventType {
+  HOLIDAY = 'HOLIDAY',
+  EVENT = 'EVENT',
+  EXAM = 'EXAM',
+  IMPORTANT_DATE = 'IMPORTANT_DATE',
+}
+
 export enum VideoProvider {
   MINIO = 'MINIO',
   YOUTUBE = 'YOUTUBE',

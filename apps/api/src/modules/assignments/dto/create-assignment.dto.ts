@@ -1,5 +1,7 @@
-import { IsString, IsNotEmpty, IsOptional, IsUUID, IsDateString, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsUUID, IsDateString, MaxLength, IsEnum, IsBoolean } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { AssignmentType } from '@prime/shared-types';
 
 export class CreateAssignmentDto {
   @ApiProperty({ example: 'Algebra Worksheet 1' })
@@ -27,4 +29,15 @@ export class CreateAssignmentDto {
   @IsDateString()
   @IsNotEmpty()
   deadline!: string;
+
+  @ApiPropertyOptional({ enum: AssignmentType, example: 'ASSIGNMENT' })
+  @IsOptional()
+  @IsEnum(AssignmentType)
+  type?: AssignmentType;
+
+  @ApiPropertyOptional({ example: true })
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isPublished?: boolean;
 }
