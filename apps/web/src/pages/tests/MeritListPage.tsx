@@ -60,13 +60,13 @@ export const MeritListPage: React.FC = () => {
   const handleExportCsv = () => {
     // Basic CSV generation
     const headers = ['Rank', 'Roll Number', 'Student Name', 'Marks Obtained', 'Total Marks', 'Percentage', 'Percentile', 'Grade'];
-    const rows = data.items.map(m => [
+    const rows = data.items.map((m: any) => [
       m.rank, m.rollNumber, m.studentName, m.marksObtained, m.totalMarks, m.percentage, m.percentile, m.grade
     ]);
     
     const csvContent = [
       headers.join(','),
-      ...rows.map(e => e.join(','))
+      ...rows.map((e: any) => e.join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

@@ -56,7 +56,7 @@ export const AttendanceDashboardPage: React.FC = () => {
         <div className="lg:col-span-2 card p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Today's Batch Coverage</h3>
           <div className="space-y-4">
-            {(data?.batchWiseSummary || []).map((batch) => (
+            {(data?.batchWiseSummary || []).map((batch: any) => (
               <div key={batch.batchId} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                 <div>
                   <h4 className="font-medium text-gray-900">{batch.batchName}</h4>
@@ -88,7 +88,7 @@ export const AttendanceDashboardPage: React.FC = () => {
         <div className="card p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-6">Weekly Trend</h3>
           <div className="space-y-4">
-            {(data?.weeklyTrend || []).map((day) => (
+            {(data?.weeklyTrend || []).map((day: any) => (
               <div key={day.date} className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-600">
                   {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
