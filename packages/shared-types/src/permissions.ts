@@ -117,6 +117,10 @@ export enum Permission {
   QUESTION_BANK_MANAGE = 'question-bank:manage',
   ACHIEVEMENT_MANAGE = 'achievement:manage',
 
+  // Phase 17
+  CALENDAR_EVENT_CREATE = 'calendar:event:create',
+  CALENDAR_EVENT_VIEW = 'calendar:event:view',
+
   // Phase 9
   LEAD_READ = 'lead:read',
   LEAD_WRITE = 'lead:write',
@@ -228,6 +232,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.ONLINE_TEST_TAKE,
     Permission.QUESTION_BANK_MANAGE,
     Permission.ACHIEVEMENT_MANAGE,
+    Permission.CALENDAR_EVENT_CREATE,
+    Permission.CALENDAR_EVENT_VIEW,
 
     // Phase 9
     Permission.LEAD_READ,
@@ -291,6 +297,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.ASSIGNMENT_REVIEW,
     Permission.ONLINE_TEST_MANAGE,
     Permission.QUESTION_BANK_MANAGE,
+    Permission.CALENDAR_EVENT_CREATE,
+    Permission.CALENDAR_EVENT_VIEW,
 
     // Phase 9
     Permission.LEAD_READ,
@@ -315,6 +323,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     // Phase 5
     Permission.ASSIGNMENT_SUBMIT,
     Permission.ONLINE_TEST_TAKE,
+    Permission.CALENDAR_EVENT_VIEW,
   ],
 
   [UserRole.PARENT]: [
@@ -332,6 +341,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     Permission.TICKET_CREATE,
     Permission.TICKET_VIEW_OWN,
     Permission.DOCUMENT_VIEW_OWN,
+    Permission.CALENDAR_EVENT_VIEW,
   ],
 
   [UserRole.ACCOUNTANT]: [

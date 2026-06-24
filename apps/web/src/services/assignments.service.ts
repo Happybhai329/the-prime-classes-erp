@@ -7,6 +7,8 @@ export interface CreateAssignmentPayload {
   subjectId: string;
   deadline: string;
   file?: File;
+  type?: 'HOMEWORK' | 'ASSIGNMENT';
+  isPublished?: boolean;
 }
 
 export const assignmentsService = {
@@ -17,6 +19,8 @@ export const assignmentsService = {
     formData.append('batchId', data.batchId);
     formData.append('subjectId', data.subjectId);
     formData.append('deadline', data.deadline);
+    if (data.type) formData.append('type', data.type);
+    if (data.isPublished !== undefined) formData.append('isPublished', String(data.isPublished));
     if (data.file) formData.append('file', data.file);
 
     return api.post('/assignments', formData, {
@@ -31,6 +35,8 @@ export const assignmentsService = {
     if (data.batchId) formData.append('batchId', data.batchId);
     if (data.subjectId) formData.append('subjectId', data.subjectId);
     if (data.deadline) formData.append('deadline', data.deadline);
+    if (data.type) formData.append('type', data.type);
+    if (data.isPublished !== undefined) formData.append('isPublished', String(data.isPublished));
     if (data.file) formData.append('file', data.file);
 
     return api.patch(`/assignments/${id}`, formData, {

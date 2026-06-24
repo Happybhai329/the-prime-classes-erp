@@ -90,6 +90,10 @@ const AuditDashboardPage = lazy(() => import('./pages/audit/AuditDashboardPage')
 const MaterialsPage = lazy(() => import('./pages/materials/MaterialsPage').then(m => ({ default: m.MaterialsPage })));
 const DigitalLibraryPage = lazy(() => import('./pages/materials/DigitalLibraryPage').then(m => ({ default: m.DigitalLibraryPage })));
 const AssignmentsPage = lazy(() => import('./pages/assignments/AssignmentsPage').then(m => ({ default: m.AssignmentsPage })));
+const HomeworkPage = lazy(() => import('./pages/homework/HomeworkPage').then(m => ({ default: m.HomeworkPage })));
+const StudentDashboard = lazy(() => import('./pages/student-portal/StudentDashboard').then(m => ({ default: m.StudentDashboard })));
+const ParentDashboard = lazy(() => import('./pages/parent-portal/ParentDashboard').then(m => ({ default: m.ParentDashboard })));
+const AcademicCalendarPage = lazy(() => import('./pages/calendar/AcademicCalendarPage').then(m => ({ default: m.AcademicCalendarPage })));
 const OnlineTestsPage = lazy(() => import('./pages/tests/OnlineTestsPage').then(m => ({ default: m.OnlineTestsPage })));
 const OnlineExamPage = lazy(() => import('./pages/tests/OnlineExamPage').then(m => ({ default: m.OnlineExamPage })));
 const QuestionBankPage = lazy(() => import('./pages/tests/QuestionBankPage').then(m => ({ default: m.QuestionBankPage })));

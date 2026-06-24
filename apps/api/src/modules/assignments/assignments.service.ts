@@ -45,6 +45,8 @@ export class AssignmentsService {
         fileUrl,
         deadline: new Date(dto.deadline),
         createdBy: userId,
+        type: dto.type || 'ASSIGNMENT',
+        isPublished: dto.isPublished !== undefined ? dto.isPublished : true,
       },
       include: {
         batch: { select: { name: true } },
@@ -54,11 +56,13 @@ export class AssignmentsService {
 
     this.logger.log(`Assignment created: ${assignment.id} for batch ${dto.batchId}`);
 
-    // Trigger Notification for batch students
-    try {
-      await this.triggerNewAssignmentNotification(tenantId, assignment);
-    } catch (err) {
-      this.logger.error(`Notification failed: ${err}`);
+    // Trigger Notification for batch students only if published
+    if (assignment.isPublished) {
+      try {
+        await this.triggerNewAssignmentNotification(tenantId, assignment);
+      } catch (err) {
+        this.logger.error(`Notification failed: ${err}`);
+      }
     }
 
     return assignment;
@@ -100,6 +104,8 @@ export class AssignmentsService {
         subjectId: dto.subjectId !== undefined ? dto.subjectId : assignment.subjectId,
         deadline: dto.deadline !== undefined ? new Date(dto.deadline) : assignment.deadline,
         fileUrl,
+        type: dto.type !== undefined ? dto.type : assignment.type,
+        isPublished: dto.isPublished !== undefined ? dto.isPublished : assignment.isPublished,
       },
     });
   }
@@ -110,6 +116,8 @@ export class AssignmentsService {
       deletedAt: null,
       ...(query.batchId && { batchId: query.batchId }),
       ...(query.subjectId && { subjectId: query.subjectId }),
+      ...(query.type && { type: query.type }),
+      ...(query.isPublished !== undefined && { isPublished: query.isPublished }),
     };
 
     // Role-based filters
@@ -123,6 +131,7 @@ export class AssignmentsService {
         });
         const batchIds = enrollments.map(e => e.batchId);
         where.batchId = { in: batchIds };
+        where.isPublished = true;
       } else if (userContext.role === 'PARENT' && userContext.studentId) {
         const studentId = userContext.studentId;
         const enrollments = await this.prisma.batchStudent.findMany({
@@ -131,6 +140,7 @@ export class AssignmentsService {
         });
         const batchIds = enrollments.map(e => e.batchId);
         where.batchId = { in: batchIds };
+        where.isPublished = true;
       }
     }
 

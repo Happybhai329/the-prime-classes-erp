@@ -63,14 +63,16 @@ export class ReportsController {
   }
 
   @Get('student/:id/performance')
-  @Permissions(Permission.REPORT_ALL)
+  @Permissions(Permission.REPORT_ALL, Permission.REPORT_OWN)
   @ApiOperation({ summary: 'Full student performance profile' })
   @ApiParam({ name: 'id', type: 'string', format: 'uuid' })
   async getStudentPerformanceProfile(
     @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser('role') role: string,
+    @CurrentUser('sub') userId: string,
     @Param('id', ParseUUIDPipe) id: string,
   ) {
-    return this.reportsService.getStudentPerformanceProfile(tenantId, id);
+    return this.reportsService.getStudentPerformanceProfile(tenantId, id, { role, userId });
   }
 
   @Get('parent/children')
@@ -81,5 +83,12 @@ export class ReportsController {
     @CurrentUser('sub') userId: string,
   ) {
     return this.reportsService.getParentChildrenData(tenantId, userId);
+  }
+
+  @Get('academic/overview')
+  @Permissions(Permission.REPORT_ALL)
+  @ApiOperation({ summary: 'Get overview of homework & assignments completion rates and engagement metrics' })
+  async getAcademicOverviewReport(@CurrentUser('tenantId') tenantId: string) {
+    return this.reportsService.getAcademicOverviewReport(tenantId);
   }
 }

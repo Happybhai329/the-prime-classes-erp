@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { TargetExam } from '@prime/shared-types';
@@ -233,7 +233,7 @@ export class ReportsService {
   // STUDENT PERFORMANCE PROFILE
   // ──────────────────────────────────────────────────
 
-  async getStudentPerformanceProfile(tenantId: string, studentId: string) {
+  async getStudentPerformanceProfile(tenantId: string, studentId: string, userContext?: { role: string; userId: string }) {
     const student = await this.prisma.student.findFirst({
       where: { id: studentId, tenantId },
       include: {
@@ -245,6 +245,12 @@ export class ReportsService {
     });
 
     if (!student) throw new NotFoundException('Student not found');
+
+    if (userContext && userContext.role === 'STUDENT') {
+      if (student.userId !== userContext.userId) {
+        throw new ForbiddenException('You can only view your own performance profile');
+      }
+    }
 
     const batchName = student.batchEnrollments[0]?.batch.name || 'Unknown';
 
@@ -412,9 +418,37 @@ export class ReportsService {
           take: 3,
         });
 
-        // Get unread notifications
-        const unreadNotices = await this.prisma.notificationLog.count({
-          where: { userId, readAt: null, notification: { tenantId } },
+        // Count child's pending assignments & homeworks
+        const childBatchEnrollments = await this.prisma.batchStudent.findMany({
+          where: { studentId: child.id, status: 'ACTIVE' },
+          select: { batchId: true },
+        });
+        const childBatchIds = childBatchEnrollments.map(e => e.batchId);
+
+        const pendingHw = await this.prisma.assignment.count({
+          where: {
+            tenantId,
+            batchId: { in: childBatchIds },
+            type: 'HOMEWORK',
+            isPublished: true,
+            deletedAt: null,
+            submissions: {
+              none: { studentId: child.id }
+            }
+          }
+        });
+
+        const pendingAsg = await this.prisma.assignment.count({
+          where: {
+            tenantId,
+            batchId: { in: childBatchIds },
+            type: 'ASSIGNMENT',
+            isPublished: true,
+            deletedAt: null,
+            submissions: {
+              none: { studentId: child.id }
+            }
+          }
         });
 
         return {
@@ -433,6 +467,8 @@ export class ReportsService {
           })),
           rankTrend: perf.tests.rankTrend.map(r => ({ testName: r.testName, rank: r.rank })),
           attendanceTrend: await this.getRecentAttendance(tenantId, child.id),
+          pendingHomeworkCount: pendingHw,
+          pendingAssignmentCount: pendingAsg,
           pendingFees: 0, // Placeholder for future fees module
         };
       })
@@ -492,6 +528,139 @@ export class ReportsService {
       date: r.session.sessionDate.toISOString().split('T')[0],
       status: r.status,
     })).reverse();
+  }
+
+  async getAcademicOverviewReport(tenantId: string) {
+    // 1. Homework completion rate
+    const homeworks = await this.prisma.assignment.findMany({
+      where: { tenantId, type: 'HOMEWORK', deletedAt: null },
+      include: {
+        batch: {
+          include: {
+            students: { where: { status: 'ACTIVE' } },
+          },
+        },
+        submissions: true,
+      },
+    });
+
+    let totalHomeworkExpected = 0;
+    let totalHomeworkSubmitted = 0;
+
+    homeworks.forEach(hw => {
+      const studentCount = hw.batch.students.length;
+      totalHomeworkExpected += studentCount;
+      totalHomeworkSubmitted += hw.submissions.length;
+    });
+
+    const homeworkCompletionRate = totalHomeworkExpected > 0
+      ? Math.round((totalHomeworkSubmitted / totalHomeworkExpected) * 100)
+      : 0;
+
+    // 2. Assignment completion rate
+    const assignments = await this.prisma.assignment.findMany({
+      where: { tenantId, type: 'ASSIGNMENT', deletedAt: null },
+      include: {
+        batch: {
+          include: {
+            students: { where: { status: 'ACTIVE' } },
+          },
+        },
+        submissions: true,
+      },
+    });
+
+    let totalAssignmentExpected = 0;
+    let totalAssignmentSubmitted = 0;
+    let lateAssignmentSubmissions = 0;
+
+    assignments.forEach(asg => {
+      const studentCount = asg.batch.students.length;
+      totalAssignmentExpected += studentCount;
+      totalAssignmentSubmitted += asg.submissions.length;
+      lateAssignmentSubmissions += asg.submissions.filter(s => s.status === 'LATE').length;
+    });
+
+    const assignmentCompletionRate = totalAssignmentExpected > 0
+      ? Math.round((totalAssignmentSubmitted / totalAssignmentExpected) * 100)
+      : 0;
+
+    const onTimeSubmissions = totalAssignmentSubmitted - lateAssignmentSubmissions;
+    const assignmentOnTimeRate = totalAssignmentSubmitted > 0
+      ? Math.round((onTimeSubmissions / totalAssignmentSubmitted) * 100)
+      : 0;
+
+    // 3. Student Engagement metrics
+    const students = await this.prisma.student.findMany({
+      where: { tenantId, status: 'ACTIVE' },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        rollNumber: true,
+        batchEnrollments: {
+          where: { status: 'ACTIVE' },
+          select: { batch: { select: { name: true } } },
+        },
+        attendanceRecords: {
+          select: { status: true },
+        },
+        submissions: {
+          select: { status: true, score: true },
+        },
+        testMarks: {
+          select: { marksObtained: true, test: { select: { totalMarks: true } } },
+        },
+      },
+      take: 20,
+    });
+
+    const studentEngagement = students.map(s => {
+      const totalAttendance = s.attendanceRecords.length;
+      const presentAttendance = s.attendanceRecords.filter(r => r.status === 'PRESENT' || r.status === 'LATE').length;
+      const attendancePct = totalAttendance > 0 ? Math.round((presentAttendance / totalAttendance) * 100) : 100;
+
+      const totalSubmissions = s.submissions.length;
+      const onTimeSubmissions = s.submissions.filter(sub => sub.status !== 'LATE').length;
+      const submissionPct = totalSubmissions > 0 ? Math.round((onTimeSubmissions / totalSubmissions) * 100) : 100;
+
+      let totalTestMarks = 0;
+      let totalTestExpected = 0;
+      s.testMarks.forEach(tm => {
+        totalTestMarks += Number(tm.marksObtained);
+        totalTestExpected += Number(tm.test.totalMarks);
+      });
+      const testPct = totalTestExpected > 0 ? Math.round((totalTestMarks / totalTestExpected) * 100) : 0;
+
+      const overallEngagement = Math.round((attendancePct + submissionPct + (testPct || 70)) / 3);
+
+      return {
+        id: s.id,
+        name: `${s.firstName} ${s.lastName}`,
+        rollNumber: s.rollNumber,
+        batchName: s.batchEnrollments[0]?.batch.name || 'N/A',
+        attendancePercentage: attendancePct,
+        submissionsCount: totalSubmissions,
+        testAverage: testPct,
+        engagementScore: overallEngagement,
+      };
+    });
+
+    return {
+      homework: {
+        completionRate: homeworkCompletionRate,
+        totalExpected: totalHomeworkExpected,
+        totalSubmitted: totalHomeworkSubmitted,
+      },
+      assignment: {
+        completionRate: assignmentCompletionRate,
+        onTimeRate: assignmentOnTimeRate,
+        totalExpected: totalAssignmentExpected,
+        totalSubmitted: totalAssignmentSubmitted,
+        lateSubmitted: lateAssignmentSubmissions,
+      },
+      studentEngagement: studentEngagement.sort((a, b) => b.engagementScore - a.engagementScore),
+    };
   }
 
   private calculateGrade(percentage: number): string {

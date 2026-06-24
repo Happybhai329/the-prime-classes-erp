@@ -34,6 +34,7 @@ import { QuestionsModule } from './modules/questions/questions.module';
 import { OnlineTestsModule } from './modules/online-tests/online-tests.module';
 import { AchievementsModule } from './modules/achievements/achievements.module';
 import { VideosModule } from './modules/videos/videos.module';
+import { CalendarEventsModule } from './modules/calendar-events/calendar-events.module';
 
 // Phase 3 Modules
 import { StorageModule } from './modules/storage/storage.module';
@@ -133,12 +134,15 @@ import { validate } from './common/config/env.validation';
     DashboardModule,
     HealthModule,
     
-    // Phase 5 Modules
+// Phase 5 Modules
     AssignmentsModule,
     QuestionsModule,
     OnlineTestsModule,
     AchievementsModule,
     VideosModule,
+    
+    // Phase 17 Modules
+    CalendarEventsModule,
     
     // Phase 3 Feature modules
     StorageModule,
