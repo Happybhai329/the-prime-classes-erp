@@ -4,7 +4,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useCalendarEvents, useCreateCalendarEvent, useDeleteCalendarEvent } from '@/hooks/useCalendarEvents';
 import { useBatches } from '@/hooks/useBatches';
 import { useAuthStore } from '@/store/auth.store';
-import { Calendar, Plus, Trash2, Clock, ChevronLeft, ChevronRight, AlertCircle, Info } from 'lucide-react';
+import { Calendar, Plus, Trash2, Clock, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const AcademicCalendarPage: React.FC = () => {
@@ -15,7 +15,7 @@ export const AcademicCalendarPage: React.FC = () => {
   const today = new Date();
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [currentMonth, setCurrentMonth] = useState(today.getMonth()); // 0-indexed
-  const [selectedDate, setSelectedDate] = useState<Date | null>(today);
+  const [_selectedDate, setSelectedDate] = useState<Date | null>(today);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [selectedEventDetails, setSelectedEventDetails] = useState<any | null>(null);
 

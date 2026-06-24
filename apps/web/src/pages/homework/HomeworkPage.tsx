@@ -5,7 +5,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useAuthStore } from '@/store/auth.store';
 import { useAssignments, useAssignmentDetails, useCreateAssignment, useDeleteAssignment, useSubmitAssignment, useGradeAssignment } from '@/hooks/useAssignments';
 import { useBatches, useBatch } from '@/hooks/useBatches';
-import { BookOpen, Plus, Trash2, Calendar, FileText, Upload, Award, CheckCircle, Clock, Download } from 'lucide-react';
+import { BookOpen, Plus, Calendar, FileText, Upload, Award, CheckCircle, Clock, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const HomeworkPage: React.FC = () => {
@@ -16,7 +16,7 @@ export const HomeworkPage: React.FC = () => {
   const [selectedBatchId, setSelectedBatchId] = useState('');
   const [selectedHomeworkId, setSelectedHomeworkId] = useState<string | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isSubmitOpen, setIsSubmitOpen] = useState(false);
+  const [_isSubmitOpen, setIsSubmitOpen] = useState(false);
   const [isGradingOpen, setIsGradingOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [homeworkToDelete, setHomeworkToDelete] = useState<string | null>(null);
@@ -96,7 +96,7 @@ export const HomeworkPage: React.FC = () => {
     }
   };
 
-  const handleDeleteHomework = (id: string) => {
+  const _handleDeleteHomework = (id: string) => {
     setHomeworkToDelete(id);
     setIsDeleteDialogOpen(true);
   };
@@ -290,12 +290,22 @@ export const HomeworkPage: React.FC = () => {
         {selectedHomeworkId && selectedHomework && (
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm relative space-y-4">
-              <button
-                onClick={() => setSelectedHomeworkId(null)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-sm font-semibold"
-              >
-                Close
-              </button>
+              <div className="absolute top-4 right-4 flex items-center gap-3">
+                {isAdminOrFaculty && (
+                  <button
+                    onClick={() => _handleDeleteHomework(selectedHomework.id)}
+                    className="text-red-500 hover:text-red-700 text-xs font-semibold"
+                  >
+                    Delete
+                  </button>
+                )}
+                <button
+                  onClick={() => setSelectedHomeworkId(null)}
+                  className="text-gray-400 hover:text-gray-600 text-sm font-semibold"
+                >
+                  Close
+                </button>
+              </div>
 
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-amber-500">{selectedHomework.subject?.name}</span>
@@ -626,10 +636,9 @@ export const HomeworkPage: React.FC = () => {
         title="Delete Homework"
         message="Are you sure you want to delete this homework? This will remove all student submissions permanently."
         confirmLabel="Delete"
-        cancelLabel="Cancel"
         onConfirm={handleConfirmDelete}
-        onCancel={() => setIsDeleteDialogOpen(false)}
-        variant="danger"
+        onClose={() => setIsDeleteDialogOpen(false)}
+        isDestructive
       />
     </div>
   );

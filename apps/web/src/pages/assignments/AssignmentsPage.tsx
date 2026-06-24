@@ -400,7 +400,9 @@ export const AssignmentsPage: React.FC = () => {
                                 </td>
                                 <td className="px-4 py-3">
                                   <span className={`inline-flex px-2 py-0.5 rounded text-xs font-semibold ${
-                                    sub.status === 'REVIEWED' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'
+                                    sub.status === 'REVIEWED' ? 'bg-emerald-50 text-emerald-700' :
+                                    sub.status === 'LATE' ? 'bg-red-50 text-red-700' :
+                                    'bg-blue-50 text-blue-700'
                                   }`}>
                                     {sub.status}
                                   </span>

@@ -26,4 +26,7 @@ export const reportService = {
 
   getParentChildrenData: () =>
     api.get<ParentPortalDashboard>('/reports/parent/children').then(r => r.data),
+
+  getAcademicOverview: () =>
+    api.get('/reports/academic/overview').then(r => r.data),
 };

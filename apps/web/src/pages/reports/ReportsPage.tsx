@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { useAttendanceSummary, useTestsSummary, useInstituteMeritList } from '@/hooks/useReports';
+import { useAttendanceSummary, useTestsSummary, useInstituteMeritList, useAcademicOverview } from '@/hooks/useReports';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { TabGroup } from '@/components/ui/TabGroup';
 import { StatCard } from '@/components/ui/StatCard';
 import { DataTable } from '@/components/ui/DataTable';
-import { Users, FileText, Award } from 'lucide-react';
+import { Users, FileText, Award, BookOpen, TrendingUp, CheckCircle } from 'lucide-react';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 const tabs = [
   { id: 'summary', label: 'Institute Summary' },
+  { id: 'academic', label: 'Academic Overview' },
   { id: 'merit-list', label: 'Institute Merit List' },
 ];
 
@@ -18,6 +19,7 @@ export const ReportsPage: React.FC = () => {
   const { data: attSummary, isLoading: attLoading } = useAttendanceSummary();
   const { data: testSummary, isLoading: testLoading } = useTestsSummary();
   const { data: meritList, isLoading: meritLoading } = useInstituteMeritList();
+  const { data: academicOverview, isLoading: academicLoading } = useAcademicOverview();
 
   const getRankColor = (rank: number) => {
     if (rank === 1) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
@@ -33,6 +35,16 @@ export const ReportsPage: React.FC = () => {
     { key: 'batch', header: 'Batch', render: (m: any) => <span className="badge-primary">{m.batchName}</span> },
     { key: 'percentage', header: 'Overall %', render: (m: any) => <span className="font-bold text-gray-900">{m.percentage}%</span> },
     { key: 'grade', header: 'Grade', render: (m: any) => <span className="font-medium text-primary-600">{m.grade}</span> },
+  ];
+
+  const engagementColumns = [
+    { key: 'student', header: 'Student Name', render: (m: any) => <span className="font-semibold text-gray-900">{m.name}</span> },
+    { key: 'roll', header: 'Roll #', render: (m: any) => m.rollNumber },
+    { key: 'batch', header: 'Batch', render: (m: any) => <span className="badge-primary">{m.batchName}</span> },
+    { key: 'attendance', header: 'Attendance', render: (m: any) => <span>{m.attendancePercentage}%</span> },
+    { key: 'submissions', header: 'Submissions', render: (m: any) => <span>{m.submissionsCount} files</span> },
+    { key: 'testAvg', header: 'Test Avg', render: (m: any) => <span>{m.testAverage}%</span> },
+    { key: 'score', header: 'Engagement Score', render: (m: any) => <span className="font-bold text-primary-600">{m.engagementScore}/100</span> },
   ];
 
   return (
@@ -78,6 +90,41 @@ export const ReportsPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'academic' && (
+        <div className="space-y-8">
+          {academicLoading ? <LoadingSpinner size="lg" className="py-20" /> : (
+            <>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Academic Completion Overview</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <StatCard title="Homework Completion Rate" value={`${academicOverview?.homework?.completionRate || 0}%`} icon={BookOpen} iconClassName="text-amber-600 bg-amber-50" />
+                  <StatCard title="Assignment Completion Rate" value={`${academicOverview?.assignment?.completionRate || 0}%`} icon={CheckCircle} iconClassName="text-primary-600 bg-primary-50" />
+                  <StatCard title="Assignment On-Time Rate" value={`${academicOverview?.assignment?.onTimeRate || 0}%`} icon={TrendingUp} iconClassName="text-emerald-600 bg-emerald-50" />
+                  <StatCard title="Late Submissions Count" value={academicOverview?.assignment?.lateSubmitted || 0} icon={FileText} iconClassName="text-red-600 bg-red-50" />
+                </div>
+              </div>
+
+              <div className="card overflow-hidden">
+                <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-primary-600" />
+                    Student Engagement Rankings
+                  </h3>
+                  <span className="text-sm text-gray-500">Based on attendance, assignments, and test averages</span>
+                </div>
+                <DataTable
+                  columns={engagementColumns}
+                  data={academicOverview?.studentEngagement || []}
+                  isLoading={academicLoading}
+                  emptyTitle="No engagement data available"
+                  emptyDescription="Engagement scores will appear once data starts accumulating."
+                />
               </div>
             </>
           )}

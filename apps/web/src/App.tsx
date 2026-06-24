@@ -205,10 +205,16 @@ function App() {
           <Route path="materials" element={<ProtectedRoute allowedPermissions={[Permission.MATERIAL_DOWNLOAD, Permission.MATERIAL_UPLOAD]}><MaterialsPage /></ProtectedRoute>} />
           <Route path="library" element={<ProtectedRoute allowedPermissions={[Permission.MATERIAL_DOWNLOAD, Permission.MATERIAL_UPLOAD]}><DigitalLibraryPage /></ProtectedRoute>} />
           <Route path="assignments" element={<ProtectedRoute allowedPermissions={[Permission.ASSIGNMENT_SUBMIT, Permission.ASSIGNMENT_CREATE, Permission.ASSIGNMENT_REVIEW]}><AssignmentsPage /></ProtectedRoute>} />
+          <Route path="homework" element={<ProtectedRoute allowedPermissions={[Permission.ASSIGNMENT_SUBMIT, Permission.ASSIGNMENT_CREATE, Permission.ASSIGNMENT_REVIEW]}><HomeworkPage /></ProtectedRoute>} />
           <Route path="online-tests" element={<ProtectedRoute allowedPermissions={[Permission.ONLINE_TEST_TAKE, Permission.ONLINE_TEST_MANAGE]}><OnlineTestsPage /></ProtectedRoute>} />
           <Route path="online-tests/exam/:testId" element={<ProtectedRoute allowedPermissions={[Permission.ONLINE_TEST_TAKE]}><OnlineExamPage /></ProtectedRoute>} />
           <Route path="question-bank" element={<ProtectedRoute allowedPermissions={[Permission.QUESTION_BANK_MANAGE]}><QuestionBankPage /></ProtectedRoute>} />
           <Route path="leaderboard" element={<LeaderboardPage />} />
+
+          {/* Phase 17 — Student Portal, Parent Portal & Academic Calendar */}
+          <Route path="student-portal" element={<ProtectedRoute allowedPermissions={[Permission.STUDENT_READ_OWN]}><StudentDashboard /></ProtectedRoute>} />
+          <Route path="parent-portal-v2" element={<ProtectedRoute allowedPermissions={[Permission.PARENT_READ_OWN]}><ParentDashboard /></ProtectedRoute>} />
+          <Route path="academic-calendar" element={<ProtectedRoute allowedPermissions={[Permission.CALENDAR_EVENT_VIEW]}><AcademicCalendarPage /></ProtectedRoute>} />
 
           {/* Phase 9 CRM & Admissions Routes */}
           <Route path="crm">

@@ -14,6 +14,9 @@ import {
   LifeBuoy,
   FileText,
   ShieldCheck,
+  BookOpen,
+  Calendar,
+  Home,
 } from 'lucide-react';
 import { Permission } from '@prime/shared-types';
 import type React from 'react';
@@ -115,6 +118,12 @@ export const sidebarNavigation: NavSection[] = [
         permissions: [Permission.ASSIGNMENT_SUBMIT, Permission.ASSIGNMENT_CREATE],
       },
       {
+        label: 'Homework',
+        path: '/homework',
+        icon: BookOpen,
+        permissions: [Permission.ASSIGNMENT_SUBMIT, Permission.ASSIGNMENT_CREATE],
+      },
+      {
         label: 'Online Tests',
         path: '/online-tests',
         icon: ClipboardList,
@@ -131,6 +140,29 @@ export const sidebarNavigation: NavSection[] = [
         path: '/leaderboard',
         icon: BarChart3,
         permissions: [],
+      },
+    ],
+  },
+  {
+    title: 'Portals & Calendar',
+    items: [
+      {
+        label: 'Student Portal',
+        path: '/student-portal',
+        icon: Home,
+        permissions: [Permission.STUDENT_READ_OWN],
+      },
+      {
+        label: 'Parent Portal',
+        path: '/parent-portal-v2',
+        icon: Users,
+        permissions: [Permission.PARENT_READ_OWN],
+      },
+      {
+        label: 'Academic Calendar',
+        path: '/academic-calendar',
+        icon: Calendar,
+        permissions: [Permission.CALENDAR_EVENT_VIEW],
       },
     ],
   },

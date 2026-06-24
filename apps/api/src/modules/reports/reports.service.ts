@@ -605,7 +605,7 @@ export class ReportsService {
         attendanceRecords: {
           select: { status: true },
         },
-        submissions: {
+        assignmentSubmissions: {
           select: { status: true, score: true },
         },
         testMarks: {
@@ -617,16 +617,16 @@ export class ReportsService {
 
     const studentEngagement = students.map(s => {
       const totalAttendance = s.attendanceRecords.length;
-      const presentAttendance = s.attendanceRecords.filter(r => r.status === 'PRESENT' || r.status === 'LATE').length;
+      const presentAttendance = s.attendanceRecords.filter((r: any) => r.status === 'PRESENT' || r.status === 'LATE').length;
       const attendancePct = totalAttendance > 0 ? Math.round((presentAttendance / totalAttendance) * 100) : 100;
 
-      const totalSubmissions = s.submissions.length;
-      const onTimeSubmissions = s.submissions.filter(sub => sub.status !== 'LATE').length;
+      const totalSubmissions = s.assignmentSubmissions.length;
+      const onTimeSubmissions = s.assignmentSubmissions.filter((sub: any) => sub.status !== 'LATE').length;
       const submissionPct = totalSubmissions > 0 ? Math.round((onTimeSubmissions / totalSubmissions) * 100) : 100;
 
       let totalTestMarks = 0;
       let totalTestExpected = 0;
-      s.testMarks.forEach(tm => {
+      s.testMarks.forEach((tm: any) => {
         totalTestMarks += Number(tm.marksObtained);
         totalTestExpected += Number(tm.test.totalMarks);
       });

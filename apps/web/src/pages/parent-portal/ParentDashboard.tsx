@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { useParentDashboard } from '@/hooks/useReports';
-import { GraduationCap, Calendar, Clock, Award, Bell, IndianRupee, BookOpen, ClipboardList, CheckCircle2 } from 'lucide-react';
+import { GraduationCap, Calendar, Award, Bell, IndianRupee, BookOpen, ClipboardList, CheckCircle2 } from 'lucide-react';
 
 export const ParentDashboard: React.FC = () => {
   const { data: dashboardData, isLoading } = useParentDashboard();
@@ -75,7 +75,7 @@ export const ParentDashboard: React.FC = () => {
             <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-400 uppercase">Pending Homework</p>
-                <p className="text-2xl font-bold text-amber-500 mt-1">{selectedChild.pendingHomeworkCount || 0}</p>
+                <p className="text-2xl font-bold text-amber-500 mt-1">{(selectedChild as any).pendingHomeworkCount || 0}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
                 <BookOpen className="h-5 w-5 text-amber-500" />
@@ -86,7 +86,7 @@ export const ParentDashboard: React.FC = () => {
             <div className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
               <div>
                 <p className="text-xs font-medium text-gray-400 uppercase">Pending Assignments</p>
-                <p className="text-2xl font-bold text-indigo-500 mt-1">{selectedChild.pendingAssignmentCount || 0}</p>
+                <p className="text-2xl font-bold text-indigo-500 mt-1">{(selectedChild as any).pendingAssignmentCount || 0}</p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
                 <ClipboardList className="h-5 w-5 text-indigo-500" />
@@ -180,9 +180,9 @@ export const ParentDashboard: React.FC = () => {
                 <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Bell className="h-5 w-5 text-primary-500" /> Institute Announcements
                 </h3>
-                {dashboardData?.recentNotices?.length > 0 ? (
+                {(dashboardData?.recentNotices?.length ?? 0) > 0 ? (
                   <div className="space-y-4">
-                    {dashboardData.recentNotices.map((n: any) => (
+                    {dashboardData!.recentNotices.map((n: any) => (
                       <div key={n.id} className="p-3 bg-gray-50/50 hover:bg-gray-50 rounded-xl border border-gray-100 transition space-y-1">
                         <div className="flex justify-between items-start">
                           <span className="text-[9px] font-bold text-primary-600 uppercase">{n.type}</span>

@@ -6,7 +6,7 @@ import { useAssignments } from '@/hooks/useAssignments';
 import { useStudentPerformance } from '@/hooks/useReports';
 import { useNotices } from '@/hooks/useNotices';
 import { useOnlineTests } from '@/hooks/useOnlineTests';
-import { BookOpen, Calendar, ClipboardList, Clock, Award, Bell, CheckCircle2, IndianRupee, TrendingUp } from 'lucide-react';
+import { BookOpen, ClipboardList, Clock, Award, Bell, CheckCircle2, IndianRupee, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const StudentDashboard: React.FC = () => {
@@ -18,7 +18,7 @@ export const StudentDashboard: React.FC = () => {
   const { data: homeworkData, isLoading: hwLoading } = useAssignments({ type: 'HOMEWORK' });
   const { data: assignmentData, isLoading: asgLoading } = useAssignments({ type: 'ASSIGNMENT' });
   const { data: noticesData, isLoading: noticesLoading } = useNotices();
-  const { data: testsData, isLoading: testsLoading } = useOnlineTests();
+  const { data: _testsData, isLoading: testsLoading } = useOnlineTests();
 
   if (perfLoading || hwLoading || asgLoading || noticesLoading || testsLoading) {
     return <LoadingSpinner size="lg" className="py-20" />;
@@ -44,7 +44,7 @@ export const StudentDashboard: React.FC = () => {
     .slice(0, 5);
 
   // Recent test performance from profile or query
-  const testSubmissions = performance?.tests?.records ?? [];
+  const testSubmissions = performance?.tests?.recentTests ?? [];
 
   // Recent announcements/notices
   const notices = noticesData?.data || [];

@@ -10,6 +10,7 @@ export const reportKeys = {
   examMeritList: (examType: string) => [...reportKeys.all, 'exam-merit-list', examType] as const,
   studentPerformance: (studentId: string) => [...reportKeys.all, 'student-performance', studentId] as const,
   parentDashboard: () => [...reportKeys.all, 'parent-dashboard'] as const,
+  academicOverview: () => [...reportKeys.all, 'academic-overview'] as const,
 };
 
 export function useAttendanceSummary() {
@@ -61,5 +62,12 @@ export function useParentDashboard() {
   return useQuery({
     queryKey: reportKeys.parentDashboard(),
     queryFn: () => reportService.getParentChildrenData(),
+  });
+}
+
+export function useAcademicOverview() {
+  return useQuery({
+    queryKey: reportKeys.academicOverview(),
+    queryFn: () => reportService.getAcademicOverview(),
   });
 }
