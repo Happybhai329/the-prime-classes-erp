@@ -120,6 +120,10 @@ class EnvironmentVariables {
   @IsOptional()
   THROTTLE_LIMIT?: number = 100;
 
+  @IsString()
+  @IsOptional()
+  SKIP_THROTTLE?: string;
+
   // Observability
   @Transform(({ value }) => value === 'true' || value === true || value === '1')
   @IsBoolean()

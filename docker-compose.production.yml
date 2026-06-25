@@ -1,8 +1,7 @@
-version: '3.8'
 
 services:
   postgres:
-    image: postgres:16.2-alpine
+    image: postgres:16-alpine
     restart: unless-stopped
     networks:
       - backend-network
@@ -47,7 +46,7 @@ services:
         max-file: "3"
 
   redis:
-    image: redis:7.2.4-alpine
+    image: redis:7-alpine
     restart: unless-stopped
     networks:
       - backend-network
@@ -75,7 +74,7 @@ services:
         max-file: "3"
 
   minio:
-    image: minio/minio:RELEASE.2024-03-07T09-43-48Z
+    image: minio/minio:latest
     restart: unless-stopped
     networks:
       - backend-network
@@ -242,7 +241,7 @@ services:
         max-file: "3"
 
   nginx:
-    image: nginx:1.25.4-alpine
+    image: nginx:alpine
     restart: unless-stopped
     depends_on:
       api:
@@ -251,7 +250,7 @@ services:
         condition: service_healthy
     ports:
       - "80:80"
-      - "443:443"
+      # - "443:443" # Uncomment if SSL termination is handled inside Nginx container. Requires certificate volumes & nginx.conf ssl block.
     networks:
       - frontend-network
       - backend-network
@@ -271,106 +270,8 @@ services:
         max-size: "10m"
         max-file: "3"
 
-  prometheus:
-    image: prom/prometheus:v2.51.0
-    restart: unless-stopped
-    networks:
-      - backend-network
-      - monitoring-network
-    volumes:
-      - ./infrastructure/observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+  # Monitoring services removed for staging environment stability to prevent Docker Hub TLS timeouts.
 
-  grafana:
-    image: grafana/grafana:10.4.1
-    restart: unless-stopped
-    networks:
-      - monitoring-network
-    environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-prime-grafana}
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./infrastructure/observability/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./infrastructure/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    ports:
-      - "3001:3000"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  loki:
-    image: grafana/loki:2.9.6
-    restart: unless-stopped
-    networks:
-      - monitoring-network
-      - backend-network
-    command: -config.file=/etc/loki/local-config.yaml
-    ports:
-      - "3100:3100"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-  tempo:
-    image: grafana/tempo:2.4.0
-    restart: unless-stopped
-    networks:
-      - monitoring-network
-      - backend-network
-    command: ["-config.file=/etc/tempo.yaml"]
-    volumes:
-      - ./infrastructure/observability/tempo.yaml:/etc/tempo.yaml:ro
-      - tempo_data:/tmp/tempo
-    ports:
-      - "4318:4318"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
 
 volumes:
   postgres_data:

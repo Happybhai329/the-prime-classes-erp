@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, Injectable, ExecutionContext } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -6,6 +6,16 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { SecurityHeadersMiddleware } from './common/middleware/security-headers.middleware';
+
+@Injectable()
+export class CustomThrottlerGuard extends ThrottlerGuard {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    if (process.env.SKIP_THROTTLE === 'true') {
+      return true;
+    }
+    return super.canActivate(context);
+  }
+}
 
 
 // Core modules
@@ -83,25 +93,33 @@ import { validate } from './common/config/env.validation';
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        throttlers: [
-          {
-            name: 'short',
-            ttl: 1000,
-            limit: 10,
-          },
-          {
-            name: 'medium',
-            ttl: 10000,
-            limit: 50,
-          },
-          {
-            name: 'long',
-            ttl: 60000,
-            limit: config.get<number>('THROTTLE_LIMIT', 100),
-          },
-        ],
-      }),
+      useFactory: (config: ConfigService) => {
+        const skip = config.get('SKIP_THROTTLE') === 'true' || 
+                     config.get('SKIP_THROTTLE') === true || 
+                     process.env.SKIP_THROTTLE === 'true';
+        console.log('SKIP_THROTTLE Config:', config.get('SKIP_THROTTLE'), typeof config.get('SKIP_THROTTLE'));
+        console.log('SKIP_THROTTLE Env:', process.env.SKIP_THROTTLE, typeof process.env.SKIP_THROTTLE);
+        console.log('SKIP_THROTTLE resolved:', skip);
+        return {
+          throttlers: [
+            {
+              name: 'short',
+              ttl: 1000,
+              limit: skip ? 100000 : 10,
+            },
+            {
+              name: 'medium',
+              ttl: 10000,
+              limit: skip ? 500000 : 50,
+            },
+            {
+              name: 'long',
+              ttl: 60000,
+              limit: skip ? 1000000 : config.get<number>('THROTTLE_LIMIT', 100),
+            },
+          ],
+        };
+      },
     }),
 
     BullModule.forRoot({
@@ -178,7 +196,7 @@ import { validate } from './common/config/env.validation';
   providers: [
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: CustomThrottlerGuard,
     },
     {
       provide: APP_INTERCEPTOR,

@@ -33,7 +33,7 @@ def robust_login(page, email, password):
         
         # Loop check for URL change (up to 20 seconds)
         for _ in range(40):
-            time.sleep(0.5)
+            page.wait_for_timeout(500)
             if "login" not in page.url:
                 print(f"    Successfully logged in! URL: {page.url}")
                 return True

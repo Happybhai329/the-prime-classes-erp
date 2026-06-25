@@ -42,11 +42,12 @@ export const useBatchRiskAlerts = (batchId: string) =>
     staleTime: 5 * 60 * 1000,
   });
 
-export const useAdminIntelligence = () =>
+export const useAdminIntelligence = (enabled = true) =>
   useQuery({
     queryKey: ['analytics', 'admin', 'intelligence'],
     queryFn: analyticsService.getAdminIntelligence,
     staleTime: 5 * 60 * 1000,
+    enabled,
   });
 
 export const useQuestionAnalytics = () =>

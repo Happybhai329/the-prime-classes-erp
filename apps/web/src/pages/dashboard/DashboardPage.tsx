@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/auth.store';
 import {
   GraduationCap,
   Layers,
@@ -67,13 +69,30 @@ const ChartCard: React.FC<{ title: string; children: React.ReactNode; isLoading?
 
 /* ---- Main Dashboard Page ---- */
 export const DashboardPage: React.FC = () => {
-  const { data: dashboard, isLoading } = useAdminDashboard();
-  const { data: growthData, isLoading: growthLoading } = useStudentGrowthChart();
-  const { data: attendanceData, isLoading: attendanceLoading } = useAttendanceTrendsChart();
-  const { data: feeData, isLoading: feeLoading } = useFeeTrendsChart();
+  const user = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role === 'PARENT') {
+      navigate('/parent-portal', { replace: true });
+    } else if (user?.role === 'STUDENT') {
+      navigate('/student-portal', { replace: true });
+    }
+  }, [user, navigate]);
+
+  const isAdminOrStaff = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN' || user?.role === 'FACULTY' || user?.role === 'ACCOUNTANT';
+
+  const { data: dashboard, isLoading } = useAdminDashboard(!!isAdminOrStaff);
+  const { data: growthData, isLoading: growthLoading } = useStudentGrowthChart(!!isAdminOrStaff);
+  const { data: attendanceData, isLoading: attendanceLoading } = useAttendanceTrendsChart(!!isAdminOrStaff);
+  const { data: feeData, isLoading: feeLoading } = useFeeTrendsChart(!!isAdminOrStaff);
   
   // Phase 7 intelligence query
-  const { data: adminIntel, isLoading: intelLoading } = useAdminIntelligence();
+  const { data: adminIntel, isLoading: intelLoading } = useAdminIntelligence(!!isAdminOrStaff);
+
+  if (!isAdminOrStaff) {
+    return <LoadingSpinner size="lg" className="h-96" />;
+  }
 
   if (isLoading || intelLoading) {
     return <LoadingSpinner size="lg" className="h-96" />;
