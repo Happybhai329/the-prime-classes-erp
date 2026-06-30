@@ -145,16 +145,16 @@ export const RefundsPage: React.FC = () => {
 
       <DataTable
         columns={columns}
-        data={refunds?.data || []}
+        data={refunds?.data?.data || []}
         isLoading={isLoading}
         emptyTitle="No Refund Requests"
         emptyDescription="All accounts are currently in balance."
       />
 
-      {refunds?.meta && (
+      {refunds?.data?.meta && (
         <Pagination
-          page={refunds.meta.page}
-          totalPages={refunds.meta.totalPages}
+          page={refunds.data.meta.page}
+          totalPages={refunds.data.meta.totalPages}
           onPageChange={setPage}
           className="mt-4"
         />
