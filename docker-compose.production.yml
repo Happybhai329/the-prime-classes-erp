@@ -9,6 +9,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-prime_admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       POSTGRES_DB: ${POSTGRES_DB:-prime_erp}
+    ports:
+      - "5432:5432"
     command:
       - postgres
       - -c
