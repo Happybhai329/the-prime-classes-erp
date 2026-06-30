@@ -30,11 +30,11 @@ export const StudentDashboard: React.FC = () => {
   const attendanceTotal = performance?.attendance?.totalDays ?? 0;
 
   // Homework metrics
-  const homeworks = homeworkData?.data || [];
+  const homeworks = homeworkData?.data?.data || [];
   const pendingHomework = homeworks.filter((hw: any) => hw.submissionStatus === 'Pending' || hw.submissionStatus === 'Late');
 
   // Assignment metrics
-  const assignments = assignmentData?.data || [];
+  const assignments = assignmentData?.data?.data || [];
   const pendingAssignments = assignments.filter((asg: any) => asg.submissionStatus === 'Pending' || asg.submissionStatus === 'Late');
 
   // Upcoming homework & assignments due soon

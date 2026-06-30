@@ -62,7 +62,7 @@ export const HomeworkPage: React.FC = () => {
   const gradeHomeworkMutation = useGradeAssignment();
 
   // Selected homework from list for student actions
-  const selectedHomework = homeworkData?.data?.find((a: any) => a.id === selectedHomeworkId);
+  const selectedHomework = homeworkData?.data?.data?.find((a: any) => a.id === selectedHomeworkId);
 
   const handleCreateHomework = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,7 +169,7 @@ export const HomeworkPage: React.FC = () => {
 
   if (homeworkLoading) return <LoadingSpinner size="lg" className="py-20" />;
 
-  const homeworks = homeworkData?.data || [];
+  const homeworks = homeworkData?.data?.data || [];
 
   return (
     <div id="homework-page" className="space-y-6">

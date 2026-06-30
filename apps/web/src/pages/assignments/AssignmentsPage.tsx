@@ -60,7 +60,7 @@ export const AssignmentsPage: React.FC = () => {
   const gradeAssignmentMutation = useGradeAssignment();
 
   // Selected assignment from list for student actions
-  const selectedAssignment = assignmentsData?.data?.find((a: any) => a.id === selectedAssignmentId);
+  const selectedAssignment = assignmentsData?.data?.data?.find((a: any) => a.id === selectedAssignmentId);
 
   const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,7 +164,7 @@ export const AssignmentsPage: React.FC = () => {
 
   if (assignmentsLoading) return <LoadingSpinner size="lg" className="py-20" />;
 
-  const assignments = assignmentsData?.data || [];
+  const assignments = assignmentsData?.data?.data || [];
 
   return (
     <div id="assignments-page" className="space-y-6">
