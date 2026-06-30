@@ -30,7 +30,7 @@ export const MaterialsPage: React.FC = () => {
 
   // Queries & Mutations
   const { data: materialsData, isLoading } = useMaterials();
-  const { data: categories } = useMaterialCategories();
+  const { data: categoriesData } = useMaterialCategories();
   const { data: batchesData } = useBatches({ limit: 100 });
   const createCategoryMutation = useCreateMaterialCategory();
   const uploadMaterialMutation = useUploadMaterial();
@@ -40,8 +40,9 @@ export const MaterialsPage: React.FC = () => {
 
   if (isLoading) return <LoadingSpinner size="lg" className="py-20" />;
 
-  const materials = materialsData?.data || [];
+  const materials = materialsData?.data?.data || [];
   const batches = batchesData?.data || [];
+  const categories = categoriesData?.data || [];
 
   const columns = [
     {
