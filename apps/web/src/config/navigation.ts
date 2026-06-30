@@ -17,6 +17,9 @@ import {
   BookOpen,
   Calendar,
   Home,
+  PhoneCall,
+  Award,
+  Briefcase,
 } from 'lucide-react';
 import { Permission } from '@prime/shared-types';
 import type React from 'react';
@@ -41,6 +44,47 @@ export const sidebarNavigation: NavSection[] = [
         path: '/dashboard',
         icon: LayoutDashboard,
         permissions: [], // All authenticated users
+      },
+    ],
+  },
+  {
+    title: 'Sales',
+    items: [
+      {
+        label: 'Sales Dashboard',
+        path: '/sales/dashboard',
+        icon: LayoutDashboard,
+        permissions: [Permission.SALES_DASHBOARD_VIEW],
+      },
+      {
+        label: 'Enquiries',
+        path: '/sales/enquiries',
+        icon: ClipboardList,
+        permissions: [Permission.ENQUIRY_READ],
+      },
+      {
+        label: 'Follow-ups',
+        path: '/sales/followups',
+        icon: PhoneCall,
+        permissions: [Permission.FOLLOWUP_READ],
+      },
+      {
+        label: 'Admissions',
+        path: '/sales/admissions',
+        icon: Award,
+        permissions: [Permission.ADMISSION_READ],
+      },
+      {
+        label: 'Counsellors',
+        path: '/sales/counsellors',
+        icon: Briefcase,
+        permissions: [Permission.COUNSELLOR_READ],
+      },
+      {
+        label: 'Sales Reports',
+        path: '/sales/reports',
+        icon: BarChart3,
+        permissions: [Permission.SALES_REPORT_VIEW],
       },
     ],
   },

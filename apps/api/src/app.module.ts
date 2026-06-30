@@ -63,6 +63,7 @@ import { CrmModule } from './modules/crm/crm.module';
 import { AdmissionsModule } from './modules/admissions/admissions.module';
 import { EventsModule } from './modules/events/events.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
+import { SalesModule } from './modules/sales/sales.module';
 
 // Phase 10 Modules
 import { OrganizationHierarchyModule } from './modules/organization-hierarchy/organization-hierarchy.module';
@@ -176,9 +177,9 @@ import { validate } from './common/config/env.validation';
     // Phase 9 Modules
     WebsiteModule,
     CrmModule,
-    AdmissionsModule,
     EventsModule,
     CampaignsModule,
+    SalesModule,
 
     // Phase 10
     ObservabilityModule,

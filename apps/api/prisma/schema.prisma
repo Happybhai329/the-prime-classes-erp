@@ -112,6 +112,12 @@ model Tenant {
   events               Event[]
   website              TenantWebsite?
 
+  // Integrated Sales CRM
+  salesCounsellors   Counsellor[]
+  salesEnquiries     Enquiry[]
+  salesFollowUps     FollowUp[]
+  salesAdmissions    Admission[]
+
   @@map("tenants")
 }
 
@@ -177,6 +183,11 @@ model User {
   verifiedDocuments  DocumentVerification[] @relation("DocumentVerifiedBy")
   leadActivities     LeadActivity[]         @relation("LeadActivityCreatedBy")
 
+  // Integrated Sales CRM
+  enquiriesCreated Enquiry[]   @relation("EnquiryCreatedByUser")
+  followUpsMade    FollowUp[]  @relation("FollowUpExecutive")
+  admissionsMade   Admission[] @relation("AdmissionCreatedByUser")
+
   // Phase 10 - enterprise security and scope
   organizationScopes        UserOrganizationScope[]
   managedBranchAssignments  BranchManagerAssignment[]
@@ -204,6 +215,9 @@ enum UserRole {
   STUDENT
   PARENT
   ACCOUNTANT
+  SALES_MANAGER
+  SALES_EXECUTIVE
+  COUNSELLOR
 }
 
 // ============================================================
@@ -248,6 +262,10 @@ model Student {
 
   // Phase 9
   admissionApplications AdmissionApplication[]
+
+  // Integrated Sales CRM
+  section            String?      @map("section") @db.VarChar(50)
+  admissions         Admission[]  @relation("AcademicStudentAdmission")
 
   // Phase 5
   points             Int               @default(0)
@@ -3382,4 +3400,126 @@ model CalendarEvent {
   @@index([tenantId])
   @@index([batchId])
   @@map("calendar_events")
+}
+
+// ============================================================
+// INTEGRATED SALES CRM MODULE
+// ============================================================
+
+model Counsellor {
+  id              String    @id @default(uuid()) @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  name            String    @db.VarChar(100)
+  mobile          String    @db.VarChar(20)
+  email           String    @db.VarChar(255)
+  targetAdmissions Int      @default(0) @map("target_admissions")
+  targetRevenue   Decimal   @default(0) @map("target_revenue") @db.Decimal(10, 2)
+  active          Boolean   @default(true)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  tenant          Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  enquiries       Enquiry[] @relation("CounsellorEnquiries")
+
+  @@index([tenantId])
+  @@map("sales_counsellors")
+}
+
+model Enquiry {
+  id                 String     @id @default(uuid()) @db.Uuid
+  tenantId           String     @map("tenant_id") @db.Uuid
+  enquiryNumber      String     @map("enquiry_number") @db.VarChar(50)
+  studentName        String     @map("student_name") @db.VarChar(100)
+  fatherName         String?    @map("father_name") @db.VarChar(100)
+  motherName         String?    @map("mother_name") @db.VarChar(100)
+  mobile             String     @db.VarChar(20)
+  alternateMobile    String?    @map("alternate_mobile") @db.VarChar(20)
+  email              String?    @db.VarChar(255)
+  address            String?    @db.Text
+  city               String?    @db.VarChar(100)
+  state              String?    @db.VarChar(100)
+  pincode            String?    @db.VarChar(20)
+  dob                DateTime?  @db.Date
+  gender             Gender?
+  school             String?    @db.VarChar(255)
+  class              String?    @db.VarChar(50)
+  targetExam         String?    @map("target_exam") @db.VarChar(100)
+  academicYear       String?    @map("academic_year") @db.VarChar(20)
+  source             String?    @db.VarChar(50)
+  campaign           String?    @db.VarChar(100)
+  referencePerson    String?    @map("reference_person") @db.VarChar(100)
+  status             String     @default("NEW") @db.VarChar(50)
+  assignedCounsellor String?    @map("assigned_counsellor_id") @db.Uuid
+  remarks            String?    @db.Text
+  createdBy          String?    @map("created_by") @db.Uuid
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  tenant             Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  counsellor         Counsellor? @relation("CounsellorEnquiries", fields: [assignedCounsellor], references: [id], onDelete: SetNull)
+  createdByUser      User?      @relation("EnquiryCreatedByUser", fields: [createdBy], references: [id], onDelete: SetNull)
+  followUps          FollowUp[] @relation("EnquiryFollowUps")
+  admissions         Admission[] @relation("EnquiryAdmissions")
+
+  @@unique([tenantId, enquiryNumber])
+  @@index([tenantId])
+  @@index([status])
+  @@map("sales_enquiries")
+}
+
+model FollowUp {
+  id           String    @id @default(uuid()) @db.Uuid
+  tenantId     String    @map("tenant_id") @db.Uuid
+  enquiryId    String    @map("enquiry_id") @db.Uuid
+  date         DateTime  @db.Date
+  nextFollowUp DateTime? @map("next_follow_up")
+  type         String    @db.VarChar(50)
+  remarks      String?   @db.Text
+  status       String    @db.VarChar(50)
+  executiveId  String?   @map("executive_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  enquiry      Enquiry   @relation("EnquiryFollowUps", fields: [enquiryId], references: [id], onDelete: Cascade)
+  executive    User?     @relation("FollowUpExecutive", fields: [executiveId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([enquiryId])
+  @@map("sales_followups")
+}
+
+model Admission {
+  id                  String    @id @default(uuid()) @db.Uuid
+  tenantId            String    @map("tenant_id") @db.Uuid
+  admissionNumber     String    @map("admission_number") @db.VarChar(50)
+  enquiryId           String    @map("enquiry_id") @db.Uuid
+  studentPhoto        String?   @map("student_photo") @db.VarChar(500)
+  documents           Json      @default("{}")
+  admissionDate       DateTime  @map("admission_date") @db.Date
+  program             String?   @db.VarChar(100)
+  course              String?   @db.VarChar(100)
+  feeStructure        Json?     @map("fee_structure")
+  discount            Decimal?  @db.Decimal(10, 2)
+  registrationFee     Decimal?  @map("registration_fee") @db.Decimal(10, 2)
+  scholarship         Decimal?  @db.Decimal(10, 2)
+  status              String    @default("PENDING") @db.VarChar(50)
+  paymentStatus       String    @default("PENDING") @map("payment_status") @db.VarChar(50)
+  convertedToAcademic Boolean   @default(false) @map("converted_to_academic")
+  academicStudentId   String?   @map("academic_student_id") @db.Uuid
+  createdBy           String?   @map("created_by") @db.Uuid
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  tenant              Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  enquiry             Enquiry   @relation("EnquiryAdmissions", fields: [enquiryId], references: [id], onDelete: Cascade)
+  createdByUser       User?     @relation("AdmissionCreatedByUser", fields: [createdBy], references: [id], onDelete: SetNull)
+  academicStudent     Student?  @relation("AcademicStudentAdmission", fields: [academicStudentId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, admissionNumber])
+  @@index([tenantId])
+  @@index([enquiryId])
+  @@map("sales_admissions")
 }

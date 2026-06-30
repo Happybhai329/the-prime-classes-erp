@@ -17,6 +17,14 @@ const CampaignManager = lazy(() => import('./pages/crm/CampaignManager').then(m 
 const WebsiteBuilder = lazy(() => import('./pages/crm/WebsiteBuilder').then(m => ({ default: m.WebsiteBuilder })));
 const PublicLandingPage = lazy(() => import('./pages/public/PublicLandingPage').then(m => ({ default: m.PublicLandingPage })));
 
+// Integrated Sales CRM
+const SalesDashboard = lazy(() => import('./pages/sales/SalesDashboard').then(m => ({ default: m.SalesDashboard })));
+const EnquiryListPage = lazy(() => import('./pages/sales/EnquiryListPage').then(m => ({ default: m.EnquiryListPage })));
+const FollowUpPage = lazy(() => import('./pages/sales/FollowUpPage').then(m => ({ default: m.FollowUpPage })));
+const AdmissionListPage = lazy(() => import('./pages/sales/AdmissionListPage').then(m => ({ default: m.AdmissionListPage })));
+const CounsellorListPage = lazy(() => import('./pages/sales/CounsellorListPage').then(m => ({ default: m.CounsellorListPage })));
+const SalesReportsPage = lazy(() => import('./pages/sales/ReportsPage').then(m => ({ default: m.ReportsPage })));
+
 // Super Admin & Franchise Settings (Phase 8)
 const SuperAdminDashboard = lazy(() => import('./pages/super-admin/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })));
 const HeadOfficeDashboard = lazy(() => import('./pages/franchise/HeadOfficeDashboard').then(m => ({ default: m.HeadOfficeDashboard })));
@@ -222,6 +230,16 @@ function App() {
             <Route path="counselor" element={<ProtectedRoute allowedPermissions={[Permission.COUNSELOR_MANAGE]}><CounselorDashboard /></ProtectedRoute>} />
             <Route path="campaigns" element={<ProtectedRoute allowedPermissions={[Permission.CAMPAIGN_MANAGE]}><CampaignManager /></ProtectedRoute>} />
             <Route path="website-builder" element={<ProtectedRoute allowedPermissions={[Permission.WEBSITE_BUILDER_MANAGE]}><WebsiteBuilder /></ProtectedRoute>} />
+          </Route>
+
+          {/* Integrated Sales CRM */}
+          <Route path="sales">
+            <Route path="dashboard" element={<ProtectedRoute allowedPermissions={[Permission.SALES_DASHBOARD_VIEW]}><SalesDashboard /></ProtectedRoute>} />
+            <Route path="enquiries" element={<ProtectedRoute allowedPermissions={[Permission.ENQUIRY_READ]}><EnquiryListPage /></ProtectedRoute>} />
+            <Route path="followups" element={<ProtectedRoute allowedPermissions={[Permission.FOLLOWUP_READ]}><FollowUpPage /></ProtectedRoute>} />
+            <Route path="admissions" element={<ProtectedRoute allowedPermissions={[Permission.ADMISSION_READ]}><AdmissionListPage /></ProtectedRoute>} />
+            <Route path="counsellors" element={<ProtectedRoute allowedPermissions={[Permission.COUNSELLOR_READ]}><CounsellorListPage /></ProtectedRoute>} />
+            <Route path="reports" element={<ProtectedRoute allowedPermissions={[Permission.SALES_REPORT_VIEW]}><SalesReportsPage /></ProtectedRoute>} />
           </Route>
 
           {/* Faculty */}
